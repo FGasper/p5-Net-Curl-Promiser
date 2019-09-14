@@ -5,6 +5,8 @@ package main;
 use strict;
 use warnings;
 
+use Net::Curl::Easy qw(:constants);
+
 use Linux::Perl::epoll ();
 
 my @urls = (
@@ -23,7 +25,7 @@ for my $url (@urls) {
     $handle->setopt( CURLOPT_URL() => $url );
     $handle->setopt( CURLOPT_FOLLOWLOCATION() => 1 );
     $http->add_handle($handle)->then(
-        sub { print "$url completed.\." },
+        sub { print "$url completed.$/" },
         sub { warn "$url: " . shift },
     );
 }
@@ -31,29 +33,36 @@ for my $url (@urls) {
 #----------------------------------------------------------------------
 
 while ($http->handles()) {
-    my @events = $epl->wait(
+    my @events = $epoll->wait(
         maxevents => 10,
         timeout => $http->get_timeout() / 1000,
     );
 
-    my (@rcv, @snd);
+    if (@events) {
+        my (@rcv, @snd);
 
-    while ( my ($fd, $evts_num) = splice @events, 0, 2 ) {
-        if ($evts_num & $http->EVENT_NUMBER()->{'IN'}) {
-            push @rcv, $fd;
+        while ( my ($fd, $evts_num) = splice @events, 0, 2 ) {
+            if ($evts_num & $epoll->EVENT_NUMBER()->{'IN'}) {
+                push @rcv, $fd;
+            }
+
+            if ($evts_num & $epoll->EVENT_NUMBER()->{'OUT'}) {
+                push @snd, $fd;
+            }
         }
 
-        if ($evts_num & $http->EVENT_NUMBER()->{'OUT'}) {
-            push @snd, $fd;
-        }
+        $http->process( \@snd, \@rcv );
     }
-
-    $http->process( \@snd, \@rcv );
+    else {
+        $http->time_out();
+    }
 }
 
 #----------------------------------------------------------------------
 
 package My::Curl::Epoll;
+
+use parent 'Net::Curl::Promiser';
 
 sub new {
     my ($class, $epoll) = @_;
