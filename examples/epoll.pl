@@ -55,7 +55,9 @@ while ($http->handles()) {
 
 package My::Curl::Epoll;
 
-sub new($class, $epoll) {
+sub new {
+    my ($class, $epoll) = @_;
+
     my $self = $class->SUPER::new();
 
     $self->{'_epoll'} = $epoll;
@@ -63,7 +65,9 @@ sub new($class, $epoll) {
     return $self;
 }
 
-sub _set_epoll($self, $fd, @events) {
+sub _set_epoll {
+    my ($self, $fd, @events) = @_;
+
     if ( exists $self->{'_fds'}{$fd} ) {
         $self->{'_epoll'}->modify( $fd, events => \@events );
     }
@@ -75,19 +79,24 @@ sub _set_epoll($self, $fd, @events) {
     return;
 }
 
-sub _SET_POLL_IN($self, $fd) {
+sub _SET_POLL_IN {
+    my ($self, $fd) = @_;
+
     return $self->_set_epoll( $fd, 'IN' );
 }
 
-sub _SET_POLL_OUT($self, $fd) {
+sub _SET_POLL_OUT {
+    my ($self, $fd) = @_;
     return $self->_set_epoll( $fd, 'OUT' );
 }
 
-sub _SET_POLL_INOUT($self, $fd) {
+sub _SET_POLL_INOUT {
+    my ($self, $fd) = @_;
     return $self->_set_epoll( $fd, 'IN', 'OUT' );
 }
 
-sub _STOP_POLL($self, $fd) {
+sub _STOP_POLL {
+    my ($self, $fd) = @_;
     if ( delete $self->{'_fds'}{$fd} ) {
         $self->{'_epoll'}->delete( $fd );
     }
