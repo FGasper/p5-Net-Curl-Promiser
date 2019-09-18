@@ -46,14 +46,13 @@ while ($http->handles()) {
         $http->time_out();
     }
     elsif ($got > 0) {
-        for my $fd ( $http->get_all_fds() ) {
-            warn "problem (?) on FD $fd!" if $eout->has($fd);
+        if ($eout =~ tr<\0><>c) {
+            for my $fd ( @{ $eout->get_fds() } ) {
+                warn "problem (?) on FD $fd!";
+            }
         }
 
-        my @rdrs = $http->get_read_fds();
-        my @wtrs = $http->get_write_fds();
-
-        $http->process( \@wtrs, \@rdrs );
+        $http->process($$rout, $$wout);
     }
     else {
         die "select(): $!";

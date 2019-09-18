@@ -39,19 +39,7 @@ while ($http->handles()) {
     );
 
     if (@events) {
-        my (@rcv, @snd);
-
-        while ( my ($fd, $evts_num) = splice @events, 0, 2 ) {
-            if ($evts_num & $epoll->EVENT_NUMBER()->{'IN'}) {
-                push @rcv, $fd;
-            }
-
-            if ($evts_num & $epoll->EVENT_NUMBER()->{'OUT'}) {
-                push @snd, $fd;
-            }
-        }
-
-        $http->process( \@snd, \@rcv );
+        $http->process( \@events );
     }
     else {
         $http->time_out();
@@ -74,6 +62,26 @@ sub new {
     return $self;
 }
 
+sub _GET_FD_ACTION {
+    my ($self, $args_ar) = @_;
+
+    my %fd_action;
+
+    my $events_ar = $args_ar->[0];
+
+    while ( my ($fd, $evts_num) = splice @$events_ar, 0, 2 ) {
+        if ($evts_num & $epoll->EVENT_NUMBER()->{'IN'}) {
+            $fd_action{$fd} = Net::Curl::Multi::CURL_CSELECT_IN();
+        }
+
+        if ($evts_num & $epoll->EVENT_NUMBER()->{'OUT'}) {
+            $fd_action{$fd} += Net::Curl::Multi::CURL_CSELECT_OUT();
+        }
+    }
+
+    return \%fd_action;
+}
+
 sub _set_epoll {
     my ($self, $fd, @events) = @_;
 
@@ -86,6 +94,10 @@ sub _set_epoll {
     }
 
     return;
+}
+
+sub _GET_FD_ACTION {
+    return $_[0]->{'_fd_action'};
 }
 
 sub _SET_POLL_IN {

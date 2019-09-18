@@ -19,26 +19,26 @@ sub new {
 
     my $self = bless \%props, $class;
 
-    my $curl = Net::Curl::Multi->new();
-    $self->{'curl'} = $curl;
+    my $multi = Net::Curl::Multi->new();
+    $self->{'multi'} = $multi;
 
-    $curl->setopt(
+    $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETDATA,
         $self,
     );
 
-    $curl->setopt(
+    $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETFUNCTION,
         \&_socket_fn,
     );
 
     if (my $timer_fn = $class->can('_ON_TIMEOUT_CHANGE')) {
-        $curl->setopt(
+        $multi->setopt(
             Net::Curl::Multi::CURLMOPT_TIMERDATA,
             $self,
         );
 
-        $curl->setopt(
+        $multi->setopt(
             Net::Curl::Multi::CURLMOPT_TIMERFUNCTION,
             $timer_fn,
         );
@@ -47,10 +47,16 @@ sub new {
     return $self;
 }
 
+sub setopt {
+    my $self = shift;
+    $self->{'multi'}->setopt(@_);
+    return $self;
+}
+
 sub time_out {
     my ($self) = @_;
 
-    my $is_active = $self->{'curl'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
+    my $is_active = $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
 
     $self->_process_pending();
 
@@ -58,14 +64,12 @@ sub time_out {
 }
 
 sub process {
-    my ($self, $send_fds_ar, $receive_fds_ar) = @_;
+    my ($self, @fd_action_args) = @_;
 
-    for my $fd (@$send_fds_ar) {
-        $self->{'curl'}->socket_action( $fd, Net::Curl::Multi::CURL_CSELECT_OUT() );
-    }
+    my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
 
-    for my $fd (@$receive_fds_ar) {
-        $self->{'curl'}->socket_action( $fd, Net::Curl::Multi::CURL_CSELECT_IN() );
+    for my $fd (keys %$fd_action_hr) {
+        $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
     }
 
     $self->_process_pending();
@@ -74,13 +78,13 @@ sub process {
 }
 
 sub handles {
-   return shift()->{'curl'}->handles();
+   return shift()->{'multi'}->handles();
 }
 
 sub get_timeout {
     my ($self) = @_;
 
-    my $timeout = $self->{'curl'}->timeout();
+    my $timeout = $self->{'multi'}->timeout();
 
     return( $timeout < 0 ? _DEFAULT_TIMEOUT() : $timeout );
 }
@@ -88,13 +92,13 @@ sub get_timeout {
 sub add_handle {
     my ($self, $easy) = @_;
 
-   $self->{'curl'}->add_handle($easy);
+    $self->{'multi'}->add_handle($easy);
 
-   my $promise = Promise::ES6->new( sub {
-       $self->{'callbacks'}{$easy} = \@_;
-   } );
+    my $promise = Promise::ES6->new( sub {
+        $self->{'callbacks'}{$easy} = \@_;
+    } );
 
-   return $promise;
+    return $promise;
 }
 
 sub fail_handle {
@@ -108,7 +112,7 @@ sub fail_handle {
 #----------------------------------------------------------------------
 
 sub _socket_fn {
-    my ( $multi, $easy, $fd, $action, $assign, $self ) = @_;
+    my ( $fd, $action, $self ) = @_[2, 3, 5];
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
         $self->_SET_POLL_IN($fd);
@@ -129,7 +133,7 @@ sub _socket_fn {
 sub _socket_action {
     my ($self, $fd, $direction) = @_;
 
-    my $is_active = $self->{'curl'}->socket_action( $fd, $direction );
+    my $is_active = $self->{'multi'}->socket_action( $fd, $direction );
 
     $self->_process_pending();
 
@@ -141,7 +145,7 @@ sub _finish_handle {
 
     delete $self->{'to_fail'}{$easy};
 
-    $self->{'curl'}->remove_handle( $easy );
+    $self->{'multi'}->remove_handle( $easy );
 
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
         $cb_ar->[$cb_idx]->($payload);
@@ -165,7 +169,9 @@ sub _clear_failed {
 sub _process_pending {
     my ($self) = @_;
 
-    while ( my ( $msg, $easy, $result ) = $self->{'curl'}->info_read() ) {
+    $self->_clear_failed();
+
+    while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
             die "Unrecognized info_read() message: [$msg]";
@@ -182,8 +188,6 @@ sub _process_pending {
             );
         }
     }
-
-    $self->_clear_failed();
 
     return;
 }
