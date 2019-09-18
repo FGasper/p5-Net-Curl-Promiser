@@ -3,11 +3,53 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
+=encoding utf-8
+
+=head1 NAME
+
+Net::Curl::Promiser - A Promise interface for L<Net::Curl>
+
+=head1 DESCRIPTION
+
+This module wraps L<Net::Curl::Multi> to facilitate asynchronous
+HTTP requests with Promise objects.
+
+L<Net::Curl::Promiser> itself is a base class; you’ll need to provide
+an interface to whatever event loop you use. See L</SUBCLASS INTERFACE>
+below.
+
+This distribution provides L<Net::Curl::Promiser::Select> as both a
+demonstration and an easily portable implementation.
+
+=head1 PROMISE IMPLEMENTATION
+
+This class’s default Promise implementation is L<Promise::ES6>.
+You can use a different one by overriding the L<PROMISE_CLASS()> method in
+a subclass, as long as the substitute class’s C<new()> method works the
+same way as Promise::ES6’s.
+
+=cut
+
+#----------------------------------------------------------------------
+
 use Promise::ES6 ();
 
 use Net::Curl::Multi ();
 
 use constant _DEFAULT_TIMEOUT => 1000;
+
+use constant PROMISE_CLASS => 'Promise::ES6';
+
+#----------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 I<CLASS>->new()
+
+Instantiates this class. This creates an underlying
+L<Net::Curl::Multi> object.
+
+=cut
 
 sub new {
     my ($class) = @_;
@@ -32,26 +74,125 @@ sub new {
         \&_socket_fn,
     );
 
-    if (my $timer_fn = $class->can('_ON_TIMEOUT_CHANGE')) {
-        $multi->setopt(
-            Net::Curl::Multi::CURLMOPT_TIMERDATA,
-            $self,
-        );
+    $self->_INIT();
 
-        $multi->setopt(
-            Net::Curl::Multi::CURLMOPT_TIMERFUNCTION,
-            $timer_fn,
-        );
+    return $self;
+}
+
+#----------------------------------------------------------------------
+
+=head2 $promise = I<OBJ>->add_handle( $EASY )
+
+A passthrough to the underlying L<Net::Curl::Multi> object’s
+method of the same name, but the return is given as a Promise object.
+
+That promise resolves with the passed-in $EASY object.
+It rejects with either the error given to C<fail_handle()> or the
+error that L<Net::Curl::Multi> object’s C<info_read()> returns;
+
+B<IMPORTANT:> HTTP-level failures (e.g., 4xx and 5xx responses)
+are B<NOT> considered failures at this level.
+
+=cut
+
+sub add_handle {
+    my ($self, $easy) = @_;
+
+    $self->{'multi'}->add_handle($easy);
+
+    my $promise = $self->PROMISE_CLASS()->new( sub {
+        $self->{'callbacks'}{$easy} = \@_;
+    } );
+
+    return $promise;
+}
+
+=head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
+
+Prematurely fails $EASY. The given $REASON will be the associated
+Promise object’s rejection value.
+
+=cut
+
+sub fail_handle {
+    my ($self, $easy, $reason) = @_;
+
+    $self->{'to_fail'}{$easy} = [ $easy, $reason ];
+
+    return $self;
+}
+
+=head2 $num = I<OBJ>->get_timeout()
+
+Returns the underlying L<Net::Curl::Multi> object’s C<timeout()>
+value, with a suitable (positive) default substituted if that value is
+less than 0.
+
+This may not suit your needs; if you wish, handle your timeouts manually
+instead. (See L</SUBCLASS INTERFACE> for more details.)
+
+=cut
+
+sub get_timeout {
+    my ($self) = @_;
+
+    my $timeout = $self->{'multi'}->timeout();
+
+    return( $timeout < 0 ? _DEFAULT_TIMEOUT() : $timeout );
+}
+
+#----------------------------------------------------------------------
+
+=head2 $obj = I<OBJ>->process( @ARGS )
+
+Tell the underlying L<Net::Curl::Multi> object which socket events have
+happened.
+
+If, in fact, no events have happened, then this calls
+C<C<socket_action(CURL_SOCKET_TIMEOUT)> on the
+L<Net::Curl::Multi> object (similar to C<time_out()>).
+
+Finally, this reaps whatever pending HTTP responses may be ready and
+resolves or rejects the corresponding Promise objects.
+
+Returns I<OBJ>.
+
+=cut
+
+sub process {
+    my ($self, @fd_action_args) = @_;
+
+    my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
+
+    if (%$fd_action_hr) {
+        for my $fd (keys %$fd_action_hr) {
+            $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
+        }
+    }
+    else {
+        $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
+    $self->_process_pending();
+
     return $self;
 }
 
-sub setopt {
-    my $self = shift;
-    $self->{'multi'}->setopt(@_);
-    return $self;
-}
+#----------------------------------------------------------------------
+
+=head2 $is_active = I<OBJ>->time_out();
+
+Tell the underlying L<Net::Curl::Multi> object that a timeout happened,
+and reap whatever pending HTTP responses may be ready.
+
+Calls C<socket_action(CURL_SOCKET_TIMEOUT)> on the
+underlying L<Net::Curl::Multi> object. The return is the same as
+that operation returns.
+
+Since C<process()> can also do the work of this function, a call to this
+function is just an optimization.
+
+=cut
 
 sub time_out {
     my ($self) = @_;
@@ -63,51 +204,65 @@ sub time_out {
     return $is_active;
 }
 
-sub process {
-    my ($self, @fd_action_args) = @_;
+#----------------------------------------------------------------------
 
-    my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
+=head2 $obj = I<OBJ>->setopt( … )
 
-    for my $fd (keys %$fd_action_hr) {
-        $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
-    }
+A passthrough to the underlying L<Net::Curl::Multi> object’s
+method of the same name. Returns I<OBJ> to facilitate chaining.
 
-    $self->_process_pending();
+B<IMPORTANT:> Don’t set C<CURLMOPT_SOCKETFUNCTION> or C<CURLMOPT_SOCKETDATA>.
+I<OBJ> needs to set those internally.
 
+=cut
+
+sub setopt {
+    my $self = shift;
+    $self->{'multi'}->setopt(@_);
     return $self;
 }
+
+=head2 $obj = I<OBJ>->handles( … )
+
+A passthrough to the underlying L<Net::Curl::Multi> object’s
+method of the same name.
+
+=cut
 
 sub handles {
    return shift()->{'multi'}->handles();
 }
 
-sub get_timeout {
-    my ($self) = @_;
+=head1 SUBCLASS INTERFACE
 
-    my $timeout = $self->{'multi'}->timeout();
+To use Net::Curl::Promiser, you’ll need a subclass that defines
+the following methods:
 
-    return( $timeout < 0 ? _DEFAULT_TIMEOUT() : $timeout );
-}
+=over
 
-sub add_handle {
-    my ($self, $easy) = @_;
+=item * C<_INIT()>: Called at the end of C<new()>.
 
-    $self->{'multi'}->add_handle($easy);
+=item * C<_SET_POLL_IN($FD)>: Tells the event loop that the given file
+descriptor is ready to read.
 
-    my $promise = Promise::ES6->new( sub {
-        $self->{'callbacks'}{$easy} = \@_;
-    } );
+=item * C<_SET_POLL_OUT($FD)>: Like C<_SET_POLL_IN()> but for a write event.
 
-    return $promise;
-}
+=item * C<_SET_POLL_INOUT($FD)>: Like C<_SET_POLL_IN()> but registers
+a read and write event simultaneously.
 
-sub fail_handle {
-    my ($self, $easy, $reason) = @_;
+=item * C<_STOP_POLL($FD)>: Tells the event loop that the given file
+descriptor is finished.
 
-    $self->{'to_fail'}{$easy} = [ $easy, $reason ];
+=item * C<_GET_FD_ACTION($ARGS_AR)>: Receives a reference to the arguments
+given to C<process()> and returns a reference to a hash of
+( $fd => $event_mask ). $event_mask is the sum of
+C<Net::Curl::Multi::CURL_CSELECT_IN()> and/or
+C<Net::Curl::Multi::CURL_CSELECT_OUT()>, depending on which events
+are available.
 
-    return;
-}
+=back
+
+=cut
 
 #----------------------------------------------------------------------
 
@@ -157,11 +312,12 @@ sub _finish_handle {
 sub _clear_failed {
     my ($self) = @_;
 
-    for my $easy_str ( keys %{ $self->{'to_fail'} } ) {
-        my $val_ar = delete $self->{'to_fail'}{$easy_str};
+    for my $val_ar ( values %{ $self->{'to_fail'} } ) {
         my ($easy, $reason) = @$val_ar;
         $self->_finish_handle( $easy, 1, $reason );
     }
+
+    %{ $self->{'to_fail'} } = ();
 
     return;
 }
@@ -177,19 +333,26 @@ sub _process_pending {
             die "Unrecognized info_read() message: [$msg]";
         }
 
-        if ( my $val_ar = delete $self->{'to_fail'}{$easy} ) {
-            my ($easy, $reason) = @$val_ar;
-            $self->_finish_handle( $easy, 1, $reason );
-        }
-        else {
-            $self->_finish_handle(
-                $easy,
-                ($result == 0) ? ( 0 => $easy ) : ( 1 => $result ),
-            );
-        }
+        $self->_finish_handle(
+            $easy,
+            ($result == 0) ? ( 0 => $easy ) : ( 1 => $result ),
+        );
     }
 
     return;
 }
+
+#----------------------------------------------------------------------
+
+=head1 EXAMPLES
+
+See the distribution’s F</examples> directory.
+
+=head1 SEE ALSO
+
+If you use L<AnyEvent>, then L<AnyEvent::XSPromises> with
+L<AnyEvent::YACurl> may be a nicer fit for you.
+
+=cut
 
 1;

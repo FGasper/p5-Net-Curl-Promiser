@@ -3,23 +3,41 @@ package Net::Curl::Promiser::Select;
 use strict;
 use warnings;
 
+=encoding utf-8
+
+=head1 NAME
+
+Net::Curl::Promiser::Select
+
+=head1 DESCRIPTION
+
+This module implements L<Net::Curl::Promiser> via Perl’s
+L<select()|perlfunc/select> built-in.
+
+=cut
+
+#----------------------------------------------------------------------
+
 use parent 'Net::Curl::Promiser';
 
 use Net::Curl::Multi ();
 
 use Data::FDSet ();
 
-sub new {
-    my ($class) = @_;
+#----------------------------------------------------------------------
 
-    my $self = $class->SUPER::new();
+=head1 METHODS
 
-    $_ = q<> for @{$self}{ qw( rin win ein ) };
+The following are added in addition to the base class methods:
 
-    $_ = {} for @{$self}{ qw( rfds wfds fds ) };
+=head2 ($rmask, $wmask, $emask) = I<OBJ>->get_vecs();
 
-    return $self;
-}
+Returns the bitmasks to use as input to C<select()>.
+
+Note that, since these are copies of I<OBJ>’s internal values, you don’t
+need to copy them again before calling C<select()>.
+
+=cut
 
 sub get_vecs {
     my ($self) = @_;
@@ -27,31 +45,41 @@ sub get_vecs {
     return @{$self}{'rin', 'win', 'ein'};
 }
 
+#----------------------------------------------------------------------
+
+=head2 @fds = I<OBJ>->get_fds();
+
+Returns the file descriptors that I<OBJ> tracks—or, in scalar context, the
+count of such. Useful to check for exception events.
+
+=cut
+
+sub get_fds {
+    return keys %{ $_[0]{'rfds'} };
+}
+
+#----------------------------------------------------------------------
+
+sub _INIT {
+    my ($self) = @_;
+
+    $_ = q<> for @{$self}{ qw( rin win ein ) };
+
+    $_ = {} for @{$self}{ qw( rfds wfds ) };
+
+    return;
+}
+
 sub _GET_FD_ACTION {
     my ($self, $args_ar) = @_;
 
     my %fd_action;
 
-    $fd_action{$_} = Net::Curl::Multi::CURL_CSELECT_IN() for @{ Data::FDSet::get_fds(\$args_ar->[0]) };
-    $fd_action{$_} += Net::Curl::Multi::CURL_CSELECT_OUT() for @{ Data::FDSet::get_fds(\$args_ar->[1]) };
+    $fd_action{$_} = Net::Curl::Multi::CURL_CSELECT_IN() for keys %{ $self->{'rfds'} };
+    $fd_action{$_} += Net::Curl::Multi::CURL_CSELECT_OUT() for keys %{ $self->{'wfds'} };
 
     return \%fd_action;
 }
-
-#sub get_read_fds {
-#    my ($self) = @_;
-#    return keys %{ $self->{'rfds'} };
-#}
-#
-#sub get_write_fds {
-#    my ($self) = @_;
-#    return keys %{ $self->{'wfds'} };
-#}
-#
-#sub get_all_fds {
-#    my ($self) = @_;
-#    return keys %{ $self->{'fds'} };
-#}
 
 sub _SET_POLL_IN {
     my ($self, $fd) = @_;

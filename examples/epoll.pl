@@ -52,14 +52,12 @@ package My::Curl::Epoll;
 
 use parent 'Net::Curl::Promiser';
 
-sub new {
-    my ($class, $epoll) = @_;
-
-    my $self = $class->SUPER::new();
+sub _INIT {
+    my ($self) = @_;
 
     $self->{'_epoll'} = $epoll;
 
-    return $self;
+    return;
 }
 
 sub _GET_FD_ACTION {
@@ -94,10 +92,6 @@ sub _set_epoll {
     }
 
     return;
-}
-
-sub _GET_FD_ACTION {
-    return $_[0]->{'_fd_action'};
 }
 
 sub _SET_POLL_IN {

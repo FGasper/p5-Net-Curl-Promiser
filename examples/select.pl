@@ -37,24 +37,18 @@ use Data::FDSet;
 $_ = Data::FDSet->new() for my ($rout, $wout, $eout);
 
 while ($http->handles()) {
-    ($$rout, $$wout) = $http->get_vecs();
+    ($$rout, $$wout, $$eout) = $http->get_vecs();
     my $timeout = $http->get_timeout() / 1000;
 
     my $got = select $$rout, $$wout, $$eout, $timeout;
 
-    if ($got == 0) {
-        $http->time_out();
-    }
-    elsif ($got > 0) {
-        if ($eout =~ tr<\0><>c) {
-            for my $fd ( @{ $eout->get_fds() } ) {
-                warn "problem (?) on FD $fd!";
-            }
-        }
+    die "select(): $!" if $got < 0;
 
-        $http->process($$rout, $$wout);
+    if ($$eout =~ tr<\0><>c) {
+        for my $fd ( $http->get_fds() ) {
+            warn "problem (?) on FD $fd!";
+        }
     }
-    else {
-        die "select(): $!";
-    }
+
+    $http->process($$rout, $$wout);
 }
