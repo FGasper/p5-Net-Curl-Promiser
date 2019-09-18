@@ -38,7 +38,7 @@ $_ = Data::FDSet->new() for my ($rout, $wout, $eout);
 
 while ($http->handles()) {
     ($$rout, $$wout, $$eout) = $http->get_vecs();
-    my $timeout = $http->get_timeout() / 1000;
+    my $timeout = $http->get_timeout();
 
     my $got = select $$rout, $$wout, $$eout, $timeout;
 

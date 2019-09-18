@@ -126,7 +126,7 @@ sub fail_handle {
 
 Returns the underlying L<Net::Curl::Multi> object’s C<timeout()>
 value, with a suitable (positive) default substituted if that value is
-less than 0.
+less than 0. This value is in I<milliseconds>.
 
 This may not suit your needs; if you wish, handle your timeouts manually
 instead. (See L</SUBCLASS INTERFACE> for more details.)

@@ -60,6 +60,19 @@ sub get_fds {
 
 #----------------------------------------------------------------------
 
+=head2 @fds = I<OBJ>->get_timeout();
+
+Calls the base class’s implementation of this method and then
+translates it to seconds (since that’s what C<select()> expects).
+
+=cut
+
+sub get_timeout {
+    return $_[0]->SUPER::get_timeout() / 1000;
+}
+
+#----------------------------------------------------------------------
+
 sub _INIT {
     my ($self) = @_;
 
