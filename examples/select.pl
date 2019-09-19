@@ -16,17 +16,35 @@ my @urls = (
     'http://metacpan.org',
 );
 
+use constant _SIZE_LIMIT => 100;
+
 #----------------------------------------------------------------------
 
-my $http = Net::Curl::Promiser::Select->new();
+my $promiser = Net::Curl::Promiser::Select->new();
 
 for my $url (@urls) {
     my $handle = Net::Curl::Easy->new();
     $handle->setopt( CURLOPT_URL() => $url );
     $handle->setopt( CURLOPT_FOLLOWLOCATION() => 1 );
-    $http->add_handle($handle)->then(
-        sub { print "$url completed.\." },
-        sub { warn "$url: " . shift },
+
+    my $buf = q<>;
+
+    $handle->setopt( CURLOPT_WRITEFUNCTION() => sub {
+        my ($easy, $data) = @_;
+
+        if (($url =~ m<perl>) && length($buf) + length($data) > _SIZE_LIMIT()) {
+            $promiser->fail_handle($easy, 'Too big!');
+            return Net::Curl::Easy::CURL_WRITEFUNC_PAUSE();
+        }
+        else {
+            $buf .= $data;
+            return length $data;
+        }
+    } );
+
+    $promiser->add_handle($handle)->then(
+        sub { print "$url completed.$/" },
+        sub { warn "$url failed: " . shift },
     );
 }
 
@@ -36,19 +54,20 @@ use Data::FDSet;
 
 $_ = Data::FDSet->new() for my ($rout, $wout, $eout);
 
-while ($http->handles()) {
-    ($$rout, $$wout, $$eout) = $http->get_vecs();
-    my $timeout = $http->get_timeout();
+while ($promiser->handles()) {
+    if ( my $timeout = $promiser->get_timeout() ) {
+        ($$rout, $$wout, $$eout) = $promiser->get_vecs();
 
-    my $got = select $$rout, $$wout, $$eout, $timeout;
+        my $got = select $$rout, $$wout, $$eout, $timeout;
 
-    die "select(): $!" if $got < 0;
+        die "select(): $!" if $got < 0;
 
-    if ($$eout =~ tr<\0><>c) {
-        for my $fd ( $http->get_fds() ) {
-            warn "problem (?) on FD $fd!";
+        if ($$eout =~ tr<\0><>c) {
+            for my $fd ( $promiser->get_fds() ) {
+                warn "problem (?) on FD $fd!" if $eout->has($fd);
+            }
         }
     }
 
-    $http->process($$rout, $$wout);
+    $promiser->process($$rout, $$wout);
 }

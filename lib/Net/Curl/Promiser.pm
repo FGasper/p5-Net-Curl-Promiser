@@ -18,8 +18,9 @@ L<Net::Curl::Promiser> itself is a base class; you’ll need to provide
 an interface to whatever event loop you use. See L</SUBCLASS INTERFACE>
 below.
 
-This distribution provides L<Net::Curl::Promiser::Select> as both a
-demonstration and an easily portable implementation.
+This distribution provides L<Net::Curl::Promiser::Select> and
+L<Net::Curl::Promiser::AnyEvent> as both demonstrations and easily portable
+implementations.
 
 =head1 PROMISE IMPLEMENTATION
 
@@ -44,15 +45,16 @@ use constant PROMISE_CLASS => 'Promise::ES6';
 
 =head1 METHODS
 
-=head2 I<CLASS>->new()
+=head2 I<CLASS>->new(@ARGS)
 
 Instantiates this class. This creates an underlying
-L<Net::Curl::Multi> object.
+L<Net::Curl::Multi> object and calls the subclass’s C<_INIT()>
+method at the end, passing a reference to @ARGS.
 
 =cut
 
 sub new {
-    my ($class) = @_;
+    my ($class, @args) = @_;
 
     my %props = (
         callbacks => {},
@@ -74,7 +76,7 @@ sub new {
         \&_socket_fn,
     );
 
-    $self->_INIT();
+    $self->_INIT(\@args);
 
     return $self;
 }
@@ -126,7 +128,9 @@ sub fail_handle {
 
 Returns the underlying L<Net::Curl::Multi> object’s C<timeout()>
 value, with a suitable (positive) default substituted if that value is
-less than 0. This value is in I<milliseconds>.
+less than 0.
+
+(NB: This value is in I<milliseconds>.)
 
 This may not suit your needs; if you wish, handle your timeouts manually
 instead. (See L</SUBCLASS INTERFACE> for more details.)
@@ -240,7 +244,8 @@ the following methods:
 
 =over
 
-=item * C<_INIT()>: Called at the end of C<new()>.
+=item * C<_INIT(\@ARGS)>: Called at the end of C<new()>. Receives a reference
+to the arguments given to C<new()>.
 
 =item * C<_SET_POLL_IN($FD)>: Tells the event loop that the given file
 descriptor is ready to read.
@@ -253,7 +258,7 @@ a read and write event simultaneously.
 =item * C<_STOP_POLL($FD)>: Tells the event loop that the given file
 descriptor is finished.
 
-=item * C<_GET_FD_ACTION($ARGS_AR)>: Receives a reference to the arguments
+=item * C<_GET_FD_ACTION(\@ARGS)>: Receives a reference to the arguments
 given to C<process()> and returns a reference to a hash of
 ( $fd => $event_mask ). $event_mask is the sum of
 C<Net::Curl::Multi::CURL_CSELECT_IN()> and/or

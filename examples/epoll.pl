@@ -53,9 +53,10 @@ package My::Curl::Epoll;
 use parent 'Net::Curl::Promiser';
 
 sub _INIT {
-    my ($self) = @_;
+    my ($self, $args_ar) = @_;
 
-    $self->{'_epoll'} = $epoll;
+    $self->{'_epoll'} = $args_ar->[0];
+    $self->{'_fds'} = {};
 
     return;
 }

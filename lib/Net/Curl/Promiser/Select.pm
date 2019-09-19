@@ -14,6 +14,8 @@ Net::Curl::Promiser::Select
 This module implements L<Net::Curl::Promiser> via Perl’s
 L<select()|perlfunc/select> built-in.
 
+See F</examples> in the distribution for a fleshed-out demonstration.
+
 =cut
 
 #----------------------------------------------------------------------
@@ -25,6 +27,12 @@ use Net::Curl::Multi ();
 use Data::FDSet ();
 
 #----------------------------------------------------------------------
+
+=head1 C<process( $READ_MASK, $WRITE_MASK )>
+
+Instances of this class should pass the read and write bitmasks
+to the C<process()> method that otherwise would be passed to Perl’s
+C<select()> built-in.
 
 =head1 METHODS
 
