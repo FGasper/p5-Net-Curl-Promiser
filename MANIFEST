@@ -1,7 +1,9 @@
 .gitignore
 .travis.yml
 LICENSE
+MANIFEST
 Makefile.PL
+README.md
 examples/anyevent.pl
 examples/epoll.pl
 examples/select.pl

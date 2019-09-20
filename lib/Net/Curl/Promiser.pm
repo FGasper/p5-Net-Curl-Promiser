@@ -359,6 +359,12 @@ See the distribution’s F</examples> directory.
 If you use L<AnyEvent>, then L<AnyEvent::XSPromises> with
 L<AnyEvent::YACurl> may be a nicer fit for you.
 
+=head1 LICENSE & COPYRIGHT
+
+Copyright 2019 Gasper Software Consulting.
+
+This library is licensed under the same terms as Perl itself.
+
 =cut
 
 1;
