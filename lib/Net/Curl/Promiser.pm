@@ -156,7 +156,7 @@ Tell the underlying L<Net::Curl::Multi> object which socket events have
 happened.
 
 If, in fact, no events have happened, then this calls
-C<C<socket_action(CURL_SOCKET_TIMEOUT)> on the
+C<socket_action(CURL_SOCKET_TIMEOUT)> on the
 L<Net::Curl::Multi> object (similar to C<time_out()>).
 
 Finally, this reaps whatever pending HTTP responses may be ready and
