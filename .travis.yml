@@ -34,7 +34,9 @@ matrix:
         - cinst -y strawberryperl --version $PERL_VERSION
         - cinst -y curl --force
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
+        - echo $PATH
         - echo $PKG_CONFIG_PATH
+        - export "PKG_CONFIG_PATH=/c/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/opt/lib"
       install:
         - cpanm -v --notest --installdeps .
       script:
