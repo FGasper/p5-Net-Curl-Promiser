@@ -34,6 +34,7 @@ matrix:
         - cinst -y strawberryperl --version $PERL_VERSION
         - cinst -y curl --force
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
+        - echo %PKG_CONFIG_PATH%
       install:
         - cpanm -v --notest --installdeps .
       script:
