@@ -128,6 +128,12 @@ See the distribution’s `/examples` directory.
 If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSPromises](https://metacpan.org/pod/AnyEvent::XSPromises) with
 [AnyEvent::YACurl](https://metacpan.org/pod/AnyEvent::YACurl) may be a nicer fit for you.
 
+# LICENSE & COPYRIGHT
+
+Copyright 2019 Gasper Software Consulting.
+
+This library is licensed under the same terms as Perl itself.
+
 # POD ERRORS
 
 Hey! **The above document had some coding errors, which are explained below:**
