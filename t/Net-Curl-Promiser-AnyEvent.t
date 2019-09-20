@@ -18,7 +18,7 @@ use ClientTest;
 plan tests => $ClientTest::TEST_COUNT;
 
 SKIP: {
-    eval { require AnyEvent; 1 } or skip "AnyEvent isn’t available: $@";
+    eval { require AnyEvent; 1 } or skip "AnyEvent isn’t available: $@", $ClientTest::TEST_COUNT;
 
     require Net::Curl::Promiser::AnyEvent;
 

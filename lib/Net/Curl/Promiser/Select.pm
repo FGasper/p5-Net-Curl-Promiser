@@ -24,8 +24,6 @@ use parent 'Net::Curl::Promiser';
 
 use Net::Curl::Multi ();
 
-use Data::FDSet ();
-
 #----------------------------------------------------------------------
 
 =head1 C<process( $READ_MASK, $WRITE_MASK )>
