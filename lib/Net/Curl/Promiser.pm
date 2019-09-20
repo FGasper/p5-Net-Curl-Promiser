@@ -3,6 +3,8 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
+our $VERSION = 0.01;
+
 =encoding utf-8
 
 =head1 NAME

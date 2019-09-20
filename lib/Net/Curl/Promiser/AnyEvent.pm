@@ -35,7 +35,7 @@ See F</examples> in the distribution for a fleshed-out demonstration.
 =head1 INVALID METHODS
 
 The following methods from L<Net::Curl::Promiser> are unneeded in this
-class:
+class and thus produce an exception if called:
 
 =over
 

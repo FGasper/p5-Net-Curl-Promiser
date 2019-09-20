@@ -138,6 +138,6 @@ This library is licensed under the same terms as Perl itself.
 
 Hey! **The above document had some coding errors, which are explained below:**
 
-- Around line 156:
+- Around line 158:
 
     Unterminated C<...> sequence
