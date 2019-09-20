@@ -7,7 +7,7 @@ use warnings;
 
 =head1 NAME
 
-Net::Curl::Promiser - A Promise interface for L<Net::Curl>
+Net::Curl::Promiser - A Promise interface for L<Net::Curl::Multi>
 
 =head1 DESCRIPTION
 
@@ -20,14 +20,14 @@ below.
 
 This distribution provides L<Net::Curl::Promiser::Select> and
 L<Net::Curl::Promiser::AnyEvent> as both demonstrations and easily portable
-implementations.
+implementations. See the distribution’s F</examples> directory for another.
 
 =head1 PROMISE IMPLEMENTATION
 
 This class’s default Promise implementation is L<Promise::ES6>.
 You can use a different one by overriding the L<PROMISE_CLASS()> method in
 a subclass, as long as the substitute class’s C<new()> method works the
-same way as Promise::ES6’s.
+same way as Promise::ES6’s (which itself follows the ECMAScript standard).
 
 =cut
 
@@ -83,7 +83,7 @@ sub new {
 
 #----------------------------------------------------------------------
 
-=head2 $promise = I<OBJ>->add_handle( $EASY )
+=head2 promise($EASY) = I<OBJ>->add_handle( $EASY )
 
 A passthrough to the underlying L<Net::Curl::Multi> object’s
 method of the same name, but the return is given as a Promise object.
@@ -92,8 +92,8 @@ That promise resolves with the passed-in $EASY object.
 It rejects with either the error given to C<fail_handle()> or the
 error that L<Net::Curl::Multi> object’s C<info_read()> returns;
 
-B<IMPORTANT:> HTTP-level failures (e.g., 4xx and 5xx responses)
-are B<NOT> considered failures at this level.
+B<IMPORTANT:> As with libcurl itself, HTTP-level failures
+(e.g., 4xx and 5xx responses) are B<NOT> considered failures at this level.
 
 =cut
 
@@ -132,8 +132,9 @@ less than 0.
 
 (NB: This value is in I<milliseconds>.)
 
-This may not suit your needs; if you wish, handle your timeouts manually
-instead. (See L</SUBCLASS INTERFACE> for more details.)
+This may not suit your needs; if you wish/need, you can handle timeouts
+via the L<CURLMOPT_TIMERFUNCTION|Net::Curl::Multi/CURLMOPT_TIMERFUNCTION>
+callback instead.
 
 =cut
 
