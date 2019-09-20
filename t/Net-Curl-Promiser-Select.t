@@ -45,7 +45,7 @@ plan tests => $ClientTest::TEST_COUNT;
 
             die "select(): $!" if $got < 0;
 
-            if ($$eout =~ tr<\0><>c) {
+            if ($eout =~ tr<\0><>c) {
                 for my $fd ( $promiser->get_fds() ) {
                     next if !vec( $eout, $fd, 1 );
                     warn "problem (?) on FD $fd!";
