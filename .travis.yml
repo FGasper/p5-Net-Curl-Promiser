@@ -32,7 +32,7 @@ matrix:
       env: PERL_VERSION=5.28.1.1
       before_install:
         - cinst -y strawberryperl --version $PERL_VERSION
-        - cinst -y curl
+        - cinst -y curl --force
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
       install:
         - cpanm --notest --installdeps .
