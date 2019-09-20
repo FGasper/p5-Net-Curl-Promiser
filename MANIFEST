@@ -1,0 +1,14 @@
+.gitignore
+.travis.yml
+LICENSE
+Makefile.PL
+examples/anyevent.pl
+examples/epoll.pl
+examples/select.pl
+lib/Net/Curl/Promiser.pm
+lib/Net/Curl/Promiser/AnyEvent.pm
+lib/Net/Curl/Promiser/Select.pm
+t/Net-Curl-Promiser-AnyEvent.t
+t/Net-Curl-Promiser-Select.t
+t/lib/ClientTest.pm
+t/lib/MyServer.pm
