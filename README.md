@@ -65,8 +65,8 @@ Tell the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi
 happened.
 
 If, in fact, no events have happened, then this calls
-`` `socket_action(CURL_SOCKET_TIMEOUT)` on the
-[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object (similar to `time_out()`). ``
+`socket_action(CURL_SOCKET_TIMEOUT)` on the
+[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object (similar to `time_out()`).
 
 Finally, this reaps whatever pending HTTP responses may be ready and
 resolves or rejects the corresponding Promise objects.
@@ -133,11 +133,3 @@ If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSProm
 Copyright 2019 Gasper Software Consulting.
 
 This library is licensed under the same terms as Perl itself.
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 158:
-
-    Unterminated C<...> sequence

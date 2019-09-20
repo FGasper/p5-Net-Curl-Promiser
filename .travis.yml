@@ -35,7 +35,7 @@ matrix:
         - cinst -y curl --force
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
       install:
-        - cpanm --notest --installdeps .
+        - cpanm -v --notest --installdeps .
       script:
         - perl Makefile.PL
         - gmake
