@@ -35,10 +35,11 @@ matrix:
         - cinst -y curl --force
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
         - echo $PATH
-        - echo $PKG_CONFIG_PATH
         - ls -laR /c/ProgramData/chocolatey
-        - export "PKG_CONFIG_PATH=C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/bin;C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/lib;C:/Progra~1/chocolatey/lib/mingw/tools/install/mingw64/opt/lib"
       install:
+        - export "PKG_CONFIG_PATH=C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/bin;C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/lib;C:/Progra~1/chocolatey/lib/mingw/tools/install/mingw64/opt/lib"
+        - echo $PKG_CONFIG_PATH
+        - echo hihihi
         - cpanm -v --notest --installdeps .
       script:
         - perl Makefile.PL
