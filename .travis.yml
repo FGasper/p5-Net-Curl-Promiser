@@ -32,12 +32,12 @@ matrix:
       env: PERL_VERSION=5.28.1.1
       before_install:
         - cinst -y strawberryperl --version $PERL_VERSION
-        - cinst -y libcurl
+        - cinst -y pkgconfiglite
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
         - echo $PATH
         - ls -laR /c/ProgramData/chocolatey
       install:
-        - export "PKG_CONFIG_PATH=C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/bin;C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/lib;C:/Progra~1/chocolatey/lib/mingw/tools/install/mingw64/opt/lib"
+        - export "PKG_CONFIG_PATH=C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/bin;C:/Progra~1/chocolatey/lib/curl/tools/curl-7.62.0-win64-mingw/lib;C:/Progra~1/chocolatey/lib/mingw/tools/install/mingw64/opt/lib:$PKG_CONFIG_PATH"
         - echo $PKG_CONFIG_PATH
         - echo hihihi
         - cpanm -v --notest --installdeps .
