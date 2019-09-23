@@ -361,6 +361,10 @@ See the distribution’s F</examples> directory.
 If you use L<AnyEvent>, then L<AnyEvent::XSPromises> with
 L<AnyEvent::YACurl> may be a nicer fit for you.
 
+=head1 REPOSITORY
+
+L<https://github.com/FGasper/p5-Net-Curl-Promiser>
+
 =head1 LICENSE & COPYRIGHT
 
 Copyright 2019 Gasper Software Consulting.

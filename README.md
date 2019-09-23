@@ -128,6 +128,10 @@ See the distribution’s `/examples` directory.
 If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSPromises](https://metacpan.org/pod/AnyEvent::XSPromises) with
 [AnyEvent::YACurl](https://metacpan.org/pod/AnyEvent::YACurl) may be a nicer fit for you.
 
+# REPOSITORY
+
+[https://github.com/FGasper/p5-Net-Curl-Promiser](https://github.com/FGasper/p5-Net-Curl-Promiser)
+
 # LICENSE & COPYRIGHT
 
 Copyright 2019 Gasper Software Consulting.
