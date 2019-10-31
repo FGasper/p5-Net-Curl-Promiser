@@ -11,9 +11,15 @@ HTTP requests with Promise objects.
 an interface to whatever event loop you use. See ["SUBCLASS INTERFACE"](#subclass-interface)
 below.
 
-This distribution provides [Net::Curl::Promiser::Select](https://metacpan.org/pod/Net::Curl::Promiser::Select) and
-[Net::Curl::Promiser::AnyEvent](https://metacpan.org/pod/Net::Curl::Promiser::AnyEvent) as both demonstrations and easily portable
-implementations. See the distribution’s `/examples` directory for another.
+This distribution provides the following as both demonstrations and
+portable implementations:
+
+- [Net::Curl::Promiser::Select](https://metacpan.org/pod/Net::Curl::Promiser::Select)
+- [Net::Curl::Promiser::AnyEvent](https://metacpan.org/pod/Net::Curl::Promiser::AnyEvent)
+- [Net::Curl::Promiser::IOAsync](https://metacpan.org/pod/Net::Curl::Promiser::IOAsync)
+
+    (See the distribution’s `/examples` directory for one based on Linux’s
+    `epoll`.)
 
 # PROMISE IMPLEMENTATION
 
@@ -59,6 +65,8 @@ This may not suit your needs; if you wish/need, you can handle timeouts
 via the [CURLMOPT\_TIMERFUNCTION](https://metacpan.org/pod/Net::Curl::Multi#CURLMOPT_TIMERFUNCTION)
 callback instead.
 
+This should only be called (if it’s called at all) from event loop logic.
+
 ## $obj = _OBJ_->process( @ARGS )
 
 Tell the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object which socket events have
@@ -70,6 +78,8 @@ If, in fact, no events have happened, then this calls
 
 Finally, this reaps whatever pending HTTP responses may be ready and
 resolves or rejects the corresponding Promise objects.
+
+This should only be called from event loop logic.
 
 Returns _OBJ_.
 
@@ -84,6 +94,8 @@ that operation returns.
 
 Since `process()` can also do the work of this function, a call to this
 function is just an optimization.
+
+This should only be called from event loop logic.
 
 ## $obj = _OBJ_->setopt( … )
 
@@ -137,3 +149,11 @@ If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSProm
 Copyright 2019 Gasper Software Consulting.
 
 This library is licensed under the same terms as Perl itself.
+
+# POD ERRORS
+
+Hey! **The above document had some coding errors, which are explained below:**
+
+- Around line 37:
+
+    You forgot a '=back' before '=head1'

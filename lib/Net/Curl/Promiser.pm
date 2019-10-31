@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = '0.02_01';
 
 =encoding utf-8
 
@@ -20,9 +20,19 @@ L<Net::Curl::Promiser> itself is a base class; you’ll need to provide
 an interface to whatever event loop you use. See L</SUBCLASS INTERFACE>
 below.
 
-This distribution provides L<Net::Curl::Promiser::Select> and
-L<Net::Curl::Promiser::AnyEvent> as both demonstrations and easily portable
-implementations. See the distribution’s F</examples> directory for another.
+This distribution provides the following as both demonstrations and
+portable implementations:
+
+=over
+
+=item * L<Net::Curl::Promiser::Select>
+
+=item * L<Net::Curl::Promiser::AnyEvent>
+
+=item * L<Net::Curl::Promiser::IOAsync>
+
+(See the distribution’s F</examples> directory for one based on Linux’s
+C<epoll>.)
 
 =head1 PROMISE IMPLEMENTATION
 
@@ -126,6 +136,8 @@ sub fail_handle {
     return $self;
 }
 
+#----------------------------------------------------------------------
+
 =head2 $num = I<OBJ>->get_timeout()
 
 Returns the underlying L<Net::Curl::Multi> object’s C<timeout()>
@@ -137,6 +149,8 @@ less than 0.
 This may not suit your needs; if you wish/need, you can handle timeouts
 via the L<CURLMOPT_TIMERFUNCTION|Net::Curl::Multi/CURLMOPT_TIMERFUNCTION>
 callback instead.
+
+This should only be called (if it’s called at all) from event loop logic.
 
 =cut
 
@@ -161,6 +175,8 @@ L<Net::Curl::Multi> object (similar to C<time_out()>).
 
 Finally, this reaps whatever pending HTTP responses may be ready and
 resolves or rejects the corresponding Promise objects.
+
+This should only be called from event loop logic.
 
 Returns I<OBJ>.
 
@@ -198,6 +214,8 @@ that operation returns.
 
 Since C<process()> can also do the work of this function, a call to this
 function is just an optimization.
+
+This should only be called from event loop logic.
 
 =cut
 

@@ -9,7 +9,9 @@ use FindBin;
 
 use lib "$FindBin::Bin/../lib";
 
-use Net::Curl::Promiser::AnyEvent;
+use IO::Async::Loop;
+
+use Net::Curl::Promiser::IOAsync;
 
 my @urls = (
     'http://perl.org',
@@ -19,7 +21,9 @@ my @urls = (
 
 #----------------------------------------------------------------------
 
-my $promiser = Net::Curl::Promiser::AnyEvent->new();
+my $loop = IO::Async::Loop->new();
+
+my $promiser = Net::Curl::Promiser::IOAsync->new($loop);
 
 my @promises;
 
@@ -34,8 +38,8 @@ for my $url (@urls) {
     );
 }
 
-my $cv = AnyEvent->condvar();
+Promise::ES6->all(\@promises)->finally( sub {
+    $loop->stop();
+} );
 
-Promise::ES6->all(\@promises)->finally($cv);
-
-$cv->recv();
+$loop->run();
