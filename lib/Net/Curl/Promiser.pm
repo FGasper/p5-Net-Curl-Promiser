@@ -31,6 +31,8 @@ portable implementations:
 
 =item * L<Net::Curl::Promiser::IOAsync>
 
+=back
+
 (See the distribution’s F</examples> directory for one based on Linux’s
 C<epoll>.)
 
