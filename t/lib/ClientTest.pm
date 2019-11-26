@@ -11,7 +11,7 @@ use Net::Curl::Easy qw(:constants);
 
 use MyServer;
 
-use constant _paths => qw( foo bar biggie foo foo );
+use constant _paths => qw( foo bar biggie baz qux quux );
 
 our $TEST_COUNT = 2 * _paths();
 
