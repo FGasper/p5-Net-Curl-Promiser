@@ -33,6 +33,11 @@ See F</examples> in the distribution for a fleshed-out demonstration.
 B<NOTE:> The actual interface is that provided by
 L<Net::Curl::Promiser::LoopBase>.
 
+=head1 STATUS
+
+B<EXPERIMENTAL:> This module doesn’t pass its own tests on all platforms.
+(On MacOS it nearly always fails.)
+
 =cut
 
 #----------------------------------------------------------------------
@@ -57,26 +62,27 @@ sub _INIT {
 sub _cb_timer {
     my ($multi, $timeout_ms, $self) = @_;
 
-    my $cb = sub {
-        $self->_time_out_in_loop();
-    };
-
-    if (my $id = delete $self->{'timer'}) {
+    for my $id ( delete @{$self}{'onetimer','recurtimer'} ) {
+        next if !$id;
         Mojo::IOLoop->remove($id);
     }
 
     if ($timeout_ms < 0) {
         if ($multi->handles()) {
-print "XXXXX setting timer = 5\n";
+            my $cb = sub {
+                $self->_time_out_in_loop();
+            };
 
-            # TODO: Make this repeat.
-            $self->{'timer'} = Mojo::IOLoop->timer( 5 => $cb );
+            $self->{'onetimer'} = Mojo::IOLoop->timer( 5 => $cb );
+            $self->{'recurtimer'} = Mojo::IOLoop->recurring( 5 => $cb );
         }
     }
     else {
-        $self->{timer} = Mojo::IOLoop->timer(
+        $self->{onetimer} = Mojo::IOLoop->timer(
             $timeout_ms / 1000,
-            $cb,
+            sub {
+                $self->_time_out_in_loop();
+            },
         );
     }
 
@@ -85,7 +91,6 @@ print "XXXXX setting timer = 5\n";
 
 sub _io {
     my ($self, $fd, $read_yn, $write_yn) = @_;
-print "Mojo set poll $fd: read? [$read_yn]\twrite? [$write_yn]\n";
 
     my $socket = $self->{'_watched_sockets'}{$fd} ||= do {
         open my $s, '+>>&=' . $fd or die "fd->fh failed: $!";
@@ -93,8 +98,6 @@ print "Mojo set poll $fd: read? [$read_yn]\twrite? [$write_yn]\n";
         Mojo::IOLoop->singleton->reactor->io(
             $s,
             sub {
-print "Mojo $fd: write? [$_[1]]\n";
-
                 $self->_process_in_loop($fd, $_[1] ? Net::Curl::Multi::CURL_CSELECT_OUT() : Net::Curl::Multi::CURL_CSELECT_IN());
             },
         );
@@ -138,14 +141,12 @@ sub _SET_POLL_INOUT {
 sub _STOP_POLL {
     my ($self, $fd) = @_;
 
-print "Mojo stop: $fd\n";
     if (my $socket = delete $self->{'_watched_sockets'}{$fd}) {
-print "Mojo REAL stop: $fd\n";
         Mojo::IOLoop->remove($socket);
     }
-else {
-print "Mojo “extra” stop: [$fd]\n";
-}
+    else {
+        warn "Mojo “extra” stop: [$fd]";
+    }
 
     return;
 }
