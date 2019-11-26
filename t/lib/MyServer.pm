@@ -64,6 +64,8 @@ sub DESTROY {
 
     my $reaped;
 
+    my $SIG = 'QUIT';
+
     while ( 1 ) {
         if (1 == waitpid $pid, 1) {
             diag "Reaped";
@@ -72,13 +74,13 @@ sub DESTROY {
             last;
         }
 
-        last if !CORE::kill 'QUIT', $pid;
+        last if !CORE::kill $SIG, $pid;
 
         Time::HiRes::sleep(0.1);
     }
 
     if (!$reaped) {
-        diag "Done sending SIGQUIT; waiting …";
+        diag "Done sending SIG$SIG; waiting …";
 
         waitpid $pid, 0;
     }
