@@ -62,15 +62,28 @@ sub DESTROY {
 
     diag "Destroying server (PID $pid) …";
 
-    local $?;
+    my $reaped;
 
     while ( 1 ) {
-        last if waitpid $pid, 1;
+        if (1 == waitpid $pid, 1) {
+            diag "Reaped";
 
-        warn if !eval { kill 'TERM', $pid; 1 };
+            $reaped = 1;
+            last;
+        }
+
+        last if !CORE::kill 'QUIT', $pid;
 
         Time::HiRes::sleep(0.1);
     }
+
+    if (!$reaped) {
+        diag "Done sending SIGQUIT; waiting …";
+
+        waitpid $pid, 0;
+    }
+
+    diag "Finished waiting.";
 
     return;
 }
