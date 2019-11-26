@@ -36,7 +36,8 @@ L<Net::Curl::Promiser::LoopBase>.
 =head1 STATUS
 
 B<EXPERIMENTAL:> This module doesn’t pass its own tests on all platforms.
-(On MacOS it nearly always fails.)
+(On MacOS it nearly always fails, whereas it passes consistently on Linux.)
+Caveat emptor.
 
 =cut
 
@@ -46,7 +47,7 @@ use parent 'Net::Curl::Promiser::LoopBase';
 
 use Net::Curl::Multi ();
 
-use Mojo::IOLoop;
+use Mojo::IOLoop ();
 
 #----------------------------------------------------------------------
 
@@ -62,10 +63,9 @@ sub _INIT {
 sub _cb_timer {
     my ($multi, $timeout_ms, $self) = @_;
 
-    for my $id ( delete @{$self}{'onetimer','recurtimer'} ) {
-        next if !$id;
-        Mojo::IOLoop->remove($id);
-    }
+    my ($ot, $rt) = delete @{$self}{'onetimer','recurtimer'};
+    Mojo::IOLoop->remove($ot) if $ot;
+    Mojo::IOLoop->remove($rt) if $rt;
 
     if ($timeout_ms < 0) {
         if ($multi->handles()) {

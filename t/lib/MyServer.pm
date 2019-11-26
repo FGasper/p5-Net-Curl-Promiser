@@ -8,6 +8,7 @@ use Test::More;
 
 use File::Temp;
 use File::Slurper;
+use Time::HiRes;
 
 our $CRLF = "\x0d\x0a";
 our $HEAD = join(
@@ -61,9 +62,15 @@ sub DESTROY {
 
     diag "Destroying server (PID $pid) …";
 
-    warn if !eval { kill 'TERM', $pid; 1 };
+    local $?;
 
-    waitpid $pid, 0;
+    while ( 1 ) {
+        last if waitpid $pid, 1;
+
+        warn if !eval { kill 'TERM', $pid; 1 };
+
+        Time::HiRes::sleep(0.1);
+    }
 
     return;
 }
