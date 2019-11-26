@@ -7,13 +7,7 @@ use autodie;
 use Test::More;
 use Test::FailWarnings;
 
-#use lib "/Users/felipe/code/perl-Net-Curl/lib";
-#use lib "/Users/felipe/code/perl-Net-Curl/blib";
-#use lib "/Users/felipe/code/perl-Net-Curl/blib/arch";
 use Net::Curl::Easy;
-
-#print "$_$/" for sort values %INC;
-#exit;
 
 use FindBin;
 use lib "$FindBin::Bin/lib";
