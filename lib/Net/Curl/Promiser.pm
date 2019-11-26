@@ -200,7 +200,7 @@ print "after socket_action: $fd, $fd_action_hr->{$fd}\n";
         }
     }
     else {
-print "socket_action: (timeout)\n";
+print "socket_action: (timeout) [@fd_action_args]\n";
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
@@ -303,15 +303,24 @@ are available.
 sub _socket_fn {
     my ( $fd, $action, $self ) = @_[2, 3, 5];
 
-my $removed = $self->{'_removed_fd'} // '-';
-print "FD set poll: [$fd, $action] (removed: $removed)\n";
+#open my $s, '+>>&=', $fd or do {
+#    warn "dupe failed: fd $fd";
+#     #return 0;
+#};
+#use Data::Dumper;
+
+#my $removed = $self->{'_removed_fd'} // '-';
+# print "FD set poll: [$fd, $action]\n";
+#my $sockopt = getsockopt($s, Socket::IPPROTO_IP, Socket::TCP_INFO);
+#my ($state) = unpack 'C', $sockopt;
+#print "state: [$state]\n";
 use Carp;
 #print Carp::longmess() if $action == 2;
     if ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
         $self->_STOP_POLL($fd);
         $self->{'_removed_fd'} = $fd;
     }
-    elsif (!$self->{'_removed_fd'} || $self->{'_removed_fd'} != $fd) {
+    elsif (1 || !$self->{'_removed_fd'} || $self->{'_removed_fd'} != $fd) {
         if ($action == Net::Curl::Multi::CURL_POLL_IN) {
             $self->_SET_POLL_IN($fd);
         }
@@ -328,7 +337,7 @@ use Carp;
 else {
 print "???????? superfluous set poll!!!!\n";
 }
-print "end of _socket_fn\n";
+#print "end of _socket_fn\n";
 
     return 0;
 }

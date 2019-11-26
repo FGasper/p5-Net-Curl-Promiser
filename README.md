@@ -15,11 +15,12 @@ This distribution provides the following as both demonstrations and
 portable implementations:
 
 - [Net::Curl::Promiser::Select](https://metacpan.org/pod/Net::Curl::Promiser::Select)
-- [Net::Curl::Promiser::AnyEvent](https://metacpan.org/pod/Net::Curl::Promiser::AnyEvent)
-- [Net::Curl::Promiser::IOAsync](https://metacpan.org/pod/Net::Curl::Promiser::IOAsync)
+- [Net::Curl::Promiser::IOAsync](https://metacpan.org/pod/Net::Curl::Promiser::IOAsync) (for [IO::Async](https://metacpan.org/pod/IO::Async))
+- [Net::Curl::Promiser::Mojo](https://metacpan.org/pod/Net::Curl::Promiser::Mojo) (for [Mojolicious](https://metacpan.org/pod/Mojolicious))
+- [Net::Curl::Promiser::AnyEvent](https://metacpan.org/pod/Net::Curl::Promiser::AnyEvent) (for [AnyEvent](https://metacpan.org/pod/AnyEvent))
 
-    (See the distribution’s `/examples` directory for one based on Linux’s
-    `epoll`.)
+(See the distribution’s `/examples` directory for one based on Linux’s
+`epoll`.)
 
 # PROMISE IMPLEMENTATION
 
@@ -43,7 +44,7 @@ method of the same name, but the return is given as a Promise object.
 
 That promise resolves with the passed-in $EASY object.
 It rejects with either the error given to `fail_handle()` or the
-error that [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s `info_read()` returns;
+error that [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s `info_read()` returns.
 
 **IMPORTANT:** As with libcurl itself, HTTP-level failures
 (e.g., 4xx and 5xx responses) are **NOT** considered failures at this level.
@@ -149,11 +150,3 @@ If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSProm
 Copyright 2019 Gasper Software Consulting.
 
 This library is licensed under the same terms as Perl itself.
-
-# POD ERRORS
-
-Hey! **The above document had some coding errors, which are explained below:**
-
-- Around line 37:
-
-    You forgot a '=back' before '=head1'

@@ -67,6 +67,7 @@ sub _cb_timer {
 
     if ($timeout_ms < 0) {
         if ($multi->handles()) {
+print "XXXXX setting timer = 5\n";
 
             # TODO: Make this repeat.
             $self->{'timer'} = Mojo::IOLoop->timer( 5 => $cb );
@@ -84,6 +85,7 @@ sub _cb_timer {
 
 sub _io {
     my ($self, $fd, $read_yn, $write_yn) = @_;
+print "Mojo set poll $fd: read? [$read_yn]\twrite? [$write_yn]\n";
 
     my $socket = $self->{'_watched_sockets'}{$fd} ||= do {
         open my $s, '+>>&=' . $fd or die "fd->fh failed: $!";
@@ -91,14 +93,9 @@ sub _io {
         Mojo::IOLoop->singleton->reactor->io(
             $s,
             sub {
-print "Mojo $fd: read? [$_[0]]\twrite? [$_[1]]\n";
-                my $mask =
-                    ( $_[0] ? Net::Curl::Multi::CURL_CSELECT_IN() : 0 )
-                    |
-                    ( $_[1] ? Net::Curl::Multi::CURL_CSELECT_OUT() : 0 )
-                ;
+print "Mojo $fd: write? [$_[1]]\n";
 
-                $self->_process_in_loop($fd, $mask);
+                $self->_process_in_loop($fd, $_[1] ? Net::Curl::Multi::CURL_CSELECT_OUT() : Net::Curl::Multi::CURL_CSELECT_IN());
             },
         );
 
@@ -141,11 +138,14 @@ sub _SET_POLL_INOUT {
 sub _STOP_POLL {
     my ($self, $fd) = @_;
 
-    if (my $socket = delete $self->{'_watched_sockets'}{$fd}) {
 print "Mojo stop: $fd\n";
+    if (my $socket = delete $self->{'_watched_sockets'}{$fd}) {
+print "Mojo REAL stop: $fd\n";
         Mojo::IOLoop->remove($socket);
-print "Mojo stopped: $fd\n";
     }
+else {
+print "Mojo “extra” stop: [$fd]\n";
+}
 
     return;
 }

@@ -102,9 +102,11 @@ sub post_bind_hook {
 sub process_http_request {
     my $self = shift;
 
-    print $MyServer::HEAD;
-
     my $uri_path = $ENV{'PATH_INFO'};
+
+    local $| = 1;
+
+    print $MyServer::HEAD;
 
     print( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
 }

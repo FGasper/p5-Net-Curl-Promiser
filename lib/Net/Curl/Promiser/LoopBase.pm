@@ -28,8 +28,7 @@ of this class and thus produce an exception if called:
 
 This is a rather hacky way accomplish this. Refactor it to be more-better.
 
-Also incorporate the copy-pasted timeout logic from AnyEvent and IO::Async
-implementations.
+Also incorporate the copy-pasted timeout logic from subclasses.
 
 =cut
 
@@ -45,9 +44,7 @@ sub get_timeout { die 'Unneeded method: ' . (caller 0)[3] };
 sub time_out { die 'Unneeded method: ' . (caller 0)[3] };
 
 sub _GET_FD_ACTION {
-    my ($self, $args_ar) = @_;
-
-    return +{ @$args_ar };
+    return +{ @{ $_[1] } };
 }
 
 1;
