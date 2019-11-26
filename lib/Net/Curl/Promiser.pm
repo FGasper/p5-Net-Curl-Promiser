@@ -27,9 +27,13 @@ portable implementations:
 
 =item * L<Net::Curl::Promiser::Select>
 
-=item * L<Net::Curl::Promiser::AnyEvent>
+=item * L<Net::Curl::Promiser::IOAsync> (for L<IO::Async>)
 
-=item * L<Net::Curl::Promiser::IOAsync>
+=item * L<Net::Curl::Promiser::Mojo> (for L<Mojolicious>)
+
+=item * L<Net::Curl::Promiser::AnyEvent> (for L<AnyEvent>)
+
+=back
 
 (See the distribution’s F</examples> directory for one based on Linux’s
 C<epoll>.)
@@ -102,7 +106,7 @@ method of the same name, but the return is given as a Promise object.
 
 That promise resolves with the passed-in $EASY object.
 It rejects with either the error given to C<fail_handle()> or the
-error that L<Net::Curl::Multi> object’s C<info_read()> returns;
+error that L<Net::Curl::Multi> object’s C<info_read()> returns.
 
 B<IMPORTANT:> As with libcurl itself, HTTP-level failures
 (e.g., 4xx and 5xx responses) are B<NOT> considered failures at this level.
@@ -189,10 +193,14 @@ sub process {
 
     if (%$fd_action_hr) {
         for my $fd (keys %$fd_action_hr) {
+            local $self->{'_removed_fd'};
+print "socket_action: $fd, $fd_action_hr->{$fd}\n";
             $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
+print "after socket_action: $fd, $fd_action_hr->{$fd}\n";
         }
     }
     else {
+print "socket_action: (timeout)\n";
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
@@ -295,18 +303,32 @@ are available.
 sub _socket_fn {
     my ( $fd, $action, $self ) = @_[2, 3, 5];
 
-    if ($action == Net::Curl::Multi::CURL_POLL_IN) {
-        $self->_SET_POLL_IN($fd);
-    }
-    elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
-        $self->_SET_POLL_OUT($fd);
-    }
-    elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
-        $self->_SET_POLL_INOUT($fd);
-    }
-    elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
+my $removed = $self->{'_removed_fd'} // '-';
+print "FD set poll: [$fd, $action] (removed: $removed)\n";
+use Carp;
+#print Carp::longmess() if $action == 2;
+    if ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
         $self->_STOP_POLL($fd);
+        $self->{'_removed_fd'} = $fd;
     }
+    elsif (!$self->{'_removed_fd'} || $self->{'_removed_fd'} != $fd) {
+        if ($action == Net::Curl::Multi::CURL_POLL_IN) {
+            $self->_SET_POLL_IN($fd);
+        }
+        elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
+            $self->_SET_POLL_OUT($fd);
+        }
+        elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
+            $self->_SET_POLL_INOUT($fd);
+        }
+        else {
+            warn "$self: Unrecognized action $action on FD $fd\n";
+        }
+    }
+else {
+print "???????? superfluous set poll!!!!\n";
+}
+print "end of _socket_fn\n";
 
     return 0;
 }
