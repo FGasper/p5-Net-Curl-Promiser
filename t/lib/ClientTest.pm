@@ -11,7 +11,8 @@ use Net::Curl::Easy qw(:constants);
 
 use MyServer;
 
-use constant _paths => qw( foo bar biggie baz qux quux );
+#use constant _paths => qw( foo bar biggie baz qux quux );
+use constant _paths => qw( foo bar biggie );
 
 our $TEST_COUNT = 2 * _paths();
 
@@ -32,7 +33,7 @@ sub run {
         $promiser->add_handle($easy)->then( sub {
             my ($easy) = shift;
 
-            is($easy->{'_head'}, $MyServer::HEAD, "headers: $path" );
+            like($easy->{'_head'}, qr<\A$MyServer::HEAD_START>, "headers: $path" );
 
             if ($path eq 'biggie') {
                 is( $easy->{'_body'}, $MyServer::BIGGIE, "payload: $path" );

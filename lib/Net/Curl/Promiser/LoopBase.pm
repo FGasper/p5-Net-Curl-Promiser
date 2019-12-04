@@ -37,7 +37,7 @@ Also incorporate the copy-pasted timeout logic from subclasses.
 use parent qw( Net::Curl::Promiser );
 
 *_process_in_loop = __PACKAGE__->can('SUPER::process');
-*_time_out_in_loop = __PACKAGE__->can('SUPER::process');
+*_time_out_in_loop = __PACKAGE__->can('SUPER::time_out');
 
 sub process { die 'Unneeded method: ' . (caller 0)[3] };
 sub get_timeout { die 'Unneeded method: ' . (caller 0)[3] };

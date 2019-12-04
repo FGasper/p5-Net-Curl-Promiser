@@ -89,20 +89,60 @@ sub _cb_timer {
     return 1;
 }
 
+sub _fh_is_stale {
+    local $!;
+
+    stat $_[0] or do {
+        return 1 if $!{'EBADF'};
+        die "stat() on socket: $!";
+    };
+
+    return 0;
+}
+
 sub _io {
     my ($self, $fd, $read_yn, $write_yn) = @_;
 
-    my $socket = $self->{'_watched_sockets'}{$fd} ||= do {
-        open my $s, '+>>&=' . $fd or die "fd->fh failed: $!";
+    my $socket = $self->{'_watched_sockets'}{$fd};
+
+    if (!$socket) {
+
+        # Mojo::IOLoop doesn’t track FDs, just Perl filehandles. That means
+        # that, in order to track libcurl’s file descriptors, we have to
+        # create Perl filehandles for them. But we also have to ensure that
+        # those filehandles aren’t garbage-collected (GC) because GC will
+        # cause Perl to close() the file descriptors, which will break
+        # libcurl.
+        #
+        # So we keep a reference to each created socket via this hash:
+        $socket = $self->{'_living_sockets'}{$fd};
+
+        if ($socket) {
+
+            # But what if libcurl has closed the underlying file descriptor?
+            # We need to ensure that that hasn’t happened; if it has, then
+            # get rid of the filehandle and create a new one. This incurs an
+            # unfortunate overhead, but is there a better way?
+            if (_fh_is_stale($socket)) {
+                $socket = $self->{'_living_sockets'}{$fd} = undef;
+            }
+        }
+
+        if (!$socket) {
+            $socket = $self->{'_living_sockets'}{$fd} = do {
+                open my $s, '+>>&=' . $fd or die "FD ($fd) to Perl FH failed: $!";
+                $s;
+            };
+        }
 
         Mojo::IOLoop->singleton->reactor->io(
-            $s,
+            $socket,
             sub {
                 $self->_process_in_loop($fd, $_[1] ? Net::Curl::Multi::CURL_CSELECT_OUT() : Net::Curl::Multi::CURL_CSELECT_IN());
             },
         );
 
-        $s;
+        $self->{'_watched_sockets'}{$fd} = $socket;
     };
 
     Mojo::IOLoop->singleton->reactor->watch(

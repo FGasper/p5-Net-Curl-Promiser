@@ -11,12 +11,12 @@ use File::Slurper;
 use Time::HiRes;
 
 our $CRLF = "\x0d\x0a";
-our $HEAD = join(
+our $HEAD_START = join(
     $CRLF,
     'HTTP/1.0 200 OK',
     'X-test: Yay',
     'Content-type: text/plain',
-    q<>, q<>,
+    q<>
 );
 
 our $BIGGIE = ('x' x 512);
@@ -128,7 +128,9 @@ sub process_http_request {
 
     local $| = 1;
 
-    print $MyServer::HEAD;
+    print $MyServer::HEAD_START;
+    print "X-URI: $uri_path$CRLF";
+    print $CRLF;
 
     print( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
 }
