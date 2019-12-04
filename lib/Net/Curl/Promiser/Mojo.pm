@@ -185,11 +185,9 @@ sub _create {
 }
 
 sub get_checked {
-    my $s = $_[0]->{ $_[1] };
+    if (my $s = $_[0]->{ $_[1] }) {
 
-    if ($s) {
-
-        # What if libcurl has closed the underlying file descriptor?
+        # What if libcurl has closed the underlying file descriptor, though?
         # We need to ensure that that hasn’t happened; if it has, then
         # get rid of the filehandle and create a new one. This incurs an
         # unfortunate overhead, but is there a better way?
