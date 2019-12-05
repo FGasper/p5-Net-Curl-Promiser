@@ -1,6 +1,6 @@
 Revision history for Perl module Net::Curl::Promiser
 
-0.02
+0.02 Wed 4 Dec 2019
 - Add IO::Async & Mojolicious support.
 
 0.01 Fri 20 Sep 2019
