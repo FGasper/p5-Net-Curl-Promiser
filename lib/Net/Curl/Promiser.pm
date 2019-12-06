@@ -35,8 +35,6 @@ portable implementations:
 
 =back
 
-=back
-
 (See the distribution’s F</examples> directory for one based on Linux’s
 C<epoll>.)
 

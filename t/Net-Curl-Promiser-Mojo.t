@@ -35,9 +35,9 @@ SKIP: {
 
     my $promiser = Net::Curl::Promiser::Mojo->new();
 
-    my $promise = ClientTest::run($promiser, $port)->catch( sub { $@ = shift; warn } );
+    my $promise = ClientTest::run($promiser, $port)->then( sub { print "big resolve\n" }, sub { $@ = shift; warn } );
 
-    $promise->finally( sub { Mojo::IOLoop->stop() } );
+    my $pr2 = $promise->finally( sub { Mojo::IOLoop->stop() } );
 
     Mojo::IOLoop->start();
 }

@@ -1,5 +1,9 @@
 Revision history for Perl module Net::Curl::Promiser
 
+0.03 Thu 5 Dec 2019
+- Make Mojo module use Mojo::Promise rather than Promise::ES6.
+- Remove incorrect text about Mojo module’s status.
+
 0.02 Wed 4 Dec 2019
 - Add IO::Async & Mojolicious support.
 

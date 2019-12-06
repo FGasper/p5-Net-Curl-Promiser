@@ -5,8 +5,6 @@ use warnings;
 
 use Test::More;
 
-use Promise::ES6;
-
 use Net::Curl::Easy qw(:constants);
 
 use MyServer;
@@ -43,7 +41,11 @@ sub run {
         }, sub { warn "REJECT $path: @_\n" } );
     } _paths();
 
-    return Promise::ES6->all(\@promises);
+    my $promise_class = (ref $promises[0]);
+
+    my $is_mojo = $promise_class->isa('Mojo::Promise');
+
+    return $promise_class->all( $is_mojo ? @promises : \@promises );
 }
 
 1;

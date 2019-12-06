@@ -33,11 +33,10 @@ See F</examples> in the distribution for a fleshed-out demonstration.
 B<NOTE:> The actual interface is that provided by
 L<Net::Curl::Promiser::LoopBase>.
 
-=head1 STATUS
+=head1 PROMISE INTERFACE
 
-B<EXPERIMENTAL:> This module doesn’t pass its own tests on all platforms.
-(On MacOS it nearly always fails, whereas it passes consistently on Linux.)
-Caveat emptor.
+This module uses L<Mojo::Promise> rather than L<Promise::ES6>
+as its promise implementation.
 
 =cut
 
@@ -48,6 +47,9 @@ use parent 'Net::Curl::Promiser::LoopBase';
 use Net::Curl::Multi ();
 
 use Mojo::IOLoop ();
+use Mojo::Promise ();
+
+use constant PROMISE_CLASS => 'Mojo::Promise';
 
 #----------------------------------------------------------------------
 
