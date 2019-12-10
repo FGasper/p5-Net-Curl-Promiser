@@ -20,7 +20,7 @@ before_install:
     - eval $(curl https://travis-perl.github.io/init) --auto
     - cpanm AnyEvent
 #    - cpanm IO::Async  # hangs
-    - cpanm Test::More Time::Local Mojo::IOLoop
+    - cpanm -v Test::More Time::Local Mojo::IOLoop
     - cpanm ExtUtils::MakeMaker
 
 matrix:
