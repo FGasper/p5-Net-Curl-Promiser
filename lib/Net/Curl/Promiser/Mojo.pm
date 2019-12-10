@@ -25,7 +25,7 @@ Net::Curl::Promiser::Mojo - support for L<Mojolicious>
 
 =head1 DESCRIPTION
 
-This module provides an L<AnyEvent>-compatible interface for
+This module provides a L<Mojolicious>-compatible interface for
 L<Net::Curl::Promiser>.
 
 See F</examples> in the distribution for a fleshed-out demonstration.
