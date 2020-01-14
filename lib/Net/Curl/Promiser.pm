@@ -450,7 +450,7 @@ L<https://github.com/FGasper/p5-Net-Curl-Promiser>
 
 =head1 LICENSE & COPYRIGHT
 
-Copyright 2019 Gasper Software Consulting.
+Copyright 2019-2020 Gasper Software Consulting.
 
 This library is licensed under the same terms as Perl itself.
 
