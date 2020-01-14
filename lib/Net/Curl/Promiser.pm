@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.06';
+our $VERSION = '0.06_01';
 
 =encoding utf-8
 
@@ -175,13 +175,23 @@ sub fail_handle {
 A passthrough to the underlying L<Net::Curl::Multi> object’s
 method of the same name. Returns I<OBJ> to facilitate chaining.
 
-B<IMPORTANT:> Don’t set C<CURLMOPT_SOCKETFUNCTION> or C<CURLMOPT_SOCKETDATA>.
-I<OBJ> needs to set those internally.
+C<CURLMOPT_SOCKETFUNCTION> or C<CURLMOPT_SOCKETDATA> are set internally;
+any attempt to set them via this interface will prompt an error.
 
 =cut
 
 sub setopt {
     my $self = shift;
+
+    for my $opt ( qw( SOCKETFUNCTION  SOCKETDATA ) ) {
+        my $fullopt = "CURLMOPT_$opt";
+
+        if ($_[0] == Net::Curl::Multi->can($fullopt)->()) {
+            my $ref = ref $self;
+            die "Don’t set $fullopt via $ref!";
+        }
+    }
+
     $self->{'multi'}->setopt(@_);
     return $self;
 }
