@@ -69,8 +69,8 @@ Promise object’s rejection value.
 A passthrough to the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s
 method of the same name. Returns _OBJ_ to facilitate chaining.
 
-**IMPORTANT:** Don’t set `CURLMOPT_SOCKETFUNCTION` or `CURLMOPT_SOCKETDATA`.
-_OBJ_ needs to set those internally.
+`CURLMOPT_SOCKETFUNCTION` or `CURLMOPT_SOCKETDATA` are set internally;
+any attempt to set them via this interface will prompt an error.
 
 ## $obj = _OBJ_->handles( … )
 
