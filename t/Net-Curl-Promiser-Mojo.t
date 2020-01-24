@@ -21,6 +21,7 @@ plan tests => $test_count;
 
 SKIP: {
     eval { require Mojo::IOLoop; 1 } or skip "Mojo::IOLoop isn’t available: $@", $test_count;
+    eval { require Mojo::Promise; 1 } or skip "Mojo::Promise isn’t available: $@", $test_count;
 
     require Net::Curl::Promiser::Mojo;
 
