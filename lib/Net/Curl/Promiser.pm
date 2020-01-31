@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.06_03';
+our $VERSION = '0.06';
 
 =encoding utf-8
 
