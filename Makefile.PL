@@ -29,7 +29,6 @@ WriteMakefile1(
     },
 
     TEST_REQUIRES => {
-'Carp::Always' => 0,
         'autodie' => 0,
         'FindBin'         => 0,
         'Test::More'      => 0,
