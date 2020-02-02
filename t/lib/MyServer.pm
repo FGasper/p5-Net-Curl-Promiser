@@ -27,6 +27,8 @@ sub new {
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
 
     my $pid = fork or do {
+        diag "forked to $$";
+
         local $SIG{'CHLD'};
 
         my $ok = eval {
@@ -44,9 +46,7 @@ sub new {
 
     my $port;
 
-    diag "PID $$: Waiting for process $pid to tell us which port it’s bound to …";
-use Carp;
-diag Carp::longmess();
+    diag "PID $$ ($0): Waiting for process $pid to tell us which port it’s bound to …";
 
     while (!$port) {
         select( undef, undef, undef, 0.1 );
