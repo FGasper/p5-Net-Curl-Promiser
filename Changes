@@ -1,7 +1,7 @@
 Revision history for Perl module Net::Curl::Promiser
 
 0.07
-- Improve test diagnostics.
+- Fix race condition and improve diagnostics in tests.
 
 0.06 Fri 31 Jan 2020
 - Add experimental Promise::XS support.
