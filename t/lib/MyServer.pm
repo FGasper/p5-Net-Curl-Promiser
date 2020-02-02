@@ -85,8 +85,8 @@ sub DESTROY {
             last;
         }
 
-        CORE::kill($SIG, $pid) or do {
-            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
+        CORE::kill("-$SIG", $pid) or do {
+            warn "kill(-$SIG, $pid): $!" if !$!{'ESRCH'};
             last;
         };
 
