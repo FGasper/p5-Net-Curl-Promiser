@@ -35,7 +35,7 @@ sub new {
             MyServer::HTTP->run(
                 port => 0,
                 server_type => 'Single',
-                log_level => 4,
+                # log_level => 4,
                 my_tempdir => $dir,
             );
 
