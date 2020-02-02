@@ -27,11 +27,19 @@ sub new {
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
 
     my $pid = fork or do {
-        $SIG{'CHLD'} = 'DEFAULT';
-        MyServer::HTTP->run(
-            port => 0,
-            my_tempdir => $dir,
-        );
+        local $SIG{'CHLD'};
+
+        my $ok = eval {
+            MyServer::HTTP->run(
+                port => 0,
+                my_tempdir => $dir,
+            );
+
+            1;
+        };
+
+        warn if !$ok;
+        exit( $ok ? 0 : 1 );
     };
 
     my $port;
@@ -56,15 +64,15 @@ sub port { $_[0][2] }
 sub DESTROY {
     my ($self ) = @_;
 
-    local $SIG{'CHLD'} = 'DEFAULT';
+    local $SIG{'CHLD'};
 
     my $pid = $self->[1];
 
-    diag "Destroying server (PID $pid) …";
+    my $SIG = 'QUIT';
+
+    diag "Destroying server (PID $pid) via SIG$SIG …";
 
     my $reaped;
-
-    my $SIG = 'QUIT';
 
     while ( 1 ) {
         if (1 == waitpid $pid, 1) {
@@ -74,7 +82,10 @@ sub DESTROY {
             last;
         }
 
-        last if !CORE::kill $SIG, $pid;
+        CORE::kill($SIG, $pid) or do {
+            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
+            last;
+        };
 
         Time::HiRes::sleep(0.1);
     }

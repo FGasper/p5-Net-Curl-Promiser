@@ -24,10 +24,7 @@ SKIP: {
 
     local $SIG{'ALRM'} = 60;
 
-    local $SIG{'CHLD'} = sub {
-        my $pid = waitpid -1, 1;
-        die "Subprocess $pid ended prematurely!";
-    };
+    local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
 
     my $server = MyServer->new();
 
