@@ -34,6 +34,8 @@ sub new {
         my $ok = eval {
             MyServer::HTTP->run(
                 port => 0,
+                max_servers => 1,
+                min_spare_servers => 0,
                 log_level => 4,
                 my_tempdir => $dir,
             );
@@ -85,8 +87,8 @@ sub DESTROY {
             last;
         }
 
-        CORE::kill("-$SIG", $pid) or do {
-            warn "kill(-$SIG, $pid): $!" if !$!{'ESRCH'};
+        CORE::kill($SIG, $pid) or do {
+            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
             last;
         };
 
