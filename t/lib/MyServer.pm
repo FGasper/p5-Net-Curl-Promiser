@@ -45,6 +45,8 @@ sub new {
     my $port;
 
     diag "PID $$: Waiting for process $pid to tell us which port it’s bound to …";
+use Carp;
+diag Carp::longmess();
 
     while (!$port) {
         select( undef, undef, undef, 0.1 );
