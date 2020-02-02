@@ -34,6 +34,7 @@ sub new {
         my $ok = eval {
             MyServer::HTTP->run(
                 port => 0,
+                log_level => 4,
                 my_tempdir => $dir,
             );
 
