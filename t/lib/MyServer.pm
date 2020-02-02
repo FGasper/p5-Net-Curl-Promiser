@@ -44,7 +44,7 @@ sub new {
 
     my $port;
 
-    diag "Waiting for process $pid to tell us which port it’s bound to …";
+    diag "PID $$: Waiting for process $pid to tell us which port it’s bound to …";
 
     while (!$port) {
         select( undef, undef, undef, 0.1 );
