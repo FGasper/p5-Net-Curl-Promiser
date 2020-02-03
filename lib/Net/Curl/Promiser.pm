@@ -266,14 +266,14 @@ sub process {
 
     if (%$fd_action_hr) {
 my @fd_action = %$fd_action_hr;
-print STDERR "N::C::P - process @fd_action$/" if DEBUG;
+print STDERR "N::C::P - process @fd_action$/" if _DEBUG;
         for my $fd (keys %$fd_action_hr) {
             local $self->{'_removed_fd'};
             $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
         }
     }
     else {
-print STDERR "N::C::P - process, timeout$/" if DEBUG;
+print STDERR "N::C::P - process, timeout$/" if _DEBUG;
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
