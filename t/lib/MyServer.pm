@@ -103,6 +103,8 @@ package CustomServer::HTTP;
 
 use autodie;
 
+use Test::More;
+
 # A blocking, non-forking server.
 # Written this way to achieve maximum simplicity.
 sub run {
