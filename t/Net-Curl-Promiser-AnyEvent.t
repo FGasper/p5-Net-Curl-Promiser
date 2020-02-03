@@ -17,6 +17,8 @@ use ClientTest;
 
 plan tests => $ClientTest::TEST_COUNT;
 
+$ENV{PERL_ANYEVENT_VERBOSE} = 8;
+
 SKIP: {
     eval { require AnyEvent; 1 } or skip "AnyEvent isn’t available: $@", $ClientTest::TEST_COUNT;
 
