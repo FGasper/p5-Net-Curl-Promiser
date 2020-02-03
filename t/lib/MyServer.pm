@@ -6,9 +6,8 @@ use autodie;
 
 use Test::More;
 
-use File::Temp;
-use File::Slurper;
 use Time::HiRes;
+use Socket;
 
 our $CRLF = "\x0d\x0a";
 our $HEAD_START = join(
@@ -24,21 +23,15 @@ our $BIGGIE = ('x' x 512);
 sub new {
     my ($class) = @_;
 
-    my $dir = File::Temp::tempdir( CLEANUP => 1 );
+    my $srv = _create_socket();
+
+    my ($port) = Socket::unpack_sockaddr_in(getsockname $srv);
+
+    diag "SERVER PORT: [$port]";
 
     my $pid = fork or do {
-        diag "forked to $$";
-
-        local $SIG{'CHLD'};
-
         my $ok = eval {
-            MyServer::HTTP->run(
-                port => 0,
-                server_type => 'Single',
-                # log_level => 4,
-                my_tempdir => $dir,
-            );
-
+            CustomServer::HTTP::run($srv);
             1;
         };
 
@@ -46,31 +39,29 @@ sub new {
         exit( $ok ? 0 : 1 );
     };
 
-    my $port;
+    close $srv;
 
-    diag "PID $$ ($0): Waiting for process $pid to tell us which port it’s bound to …";
-
-    while (!$port) {
-        select( undef, undef, undef, 0.1 );
-
-        if (-s "$dir/port") {
-            $port = File::Slurper::read_text("$dir/port");
-        }
-    }
-
-    diag "SERVER PORT: [$port]";
-
-    return bless [$dir, $pid, $port], $class;
+    return bless [$pid, $port], $class;
 }
 
-sub port { $_[0][2] }
+sub _create_socket {
+    socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
+
+    bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
+
+    listen $srv, 10;
+
+    return $srv;
+}
+
+sub port { $_[0][1] }
 
 sub DESTROY {
     my ($self ) = @_;
 
     local $SIG{'CHLD'};
 
-    my $pid = $self->[1];
+    my $pid = $self->[0];
 
     my $SIG = 'QUIT';
 
@@ -106,46 +97,30 @@ sub DESTROY {
 }
 
 #----------------------------------------------------------------------
+package CustomServer::HTTP;
 
-package MyServer::HTTP;
+use autodie;
 
-use parent 'Net::Server::HTTP';
+# A blocking, non-forking server.
+# Written this way to achieve maximum simplicity.
+sub run {
+    my ($socket) = @_;
 
-sub options {
-    my $self     = shift;
-    my $prop     = $self->{'server'};
-    my $template = shift;
+    while (1) {
+        accept( my $cln, $socket );
 
-    # setup options in the parent classes
-    $self->SUPER::options($template);
+        my $buf = q<>;
+        while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
+            sysread( $cln, $buf, 512, length $buf );
+        }
 
-    $prop->{'my_tempdir'} ||= undef;
-    $template->{'my_tempdir'} = \$prop->{'my_tempdir'};
+        $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
+        my $uri_path = $1;
 
-    return;
-}
+        syswrite $cln, $MyServer::HEAD_START;
+        syswrite $cln, "X-URI: $uri_path$MyServer::CRLF";
+        syswrite $cln, $MyServer::CRLF;
 
-sub post_bind_hook {
-    my ($self) = @_;
-
-    my $socket = $self->{'server'}{'sock'}[0];
-
-    my $path = "$self->{'server'}{'my_tempdir'}/port";
-    File::Slurper::write_text( $path, $socket->sockport() );
-
-    return;
-}
-
-sub process_http_request {
-    my $self = shift;
-
-    my $uri_path = $ENV{'PATH_INFO'};
-
-    local $| = 1;
-
-    print $MyServer::HEAD_START;
-    print "X-URI: $uri_path$CRLF";
-    print $CRLF;
-
-    print( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
+        syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
+    }
 }
