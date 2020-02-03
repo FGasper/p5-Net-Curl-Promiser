@@ -24,7 +24,7 @@ SKIP: {
 
     local $SIG{'ALRM'} = 60;
 
-    local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
+    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
 
     my $server = MyServer->new();
 
