@@ -404,6 +404,7 @@ sub _clear_failed {
     my ($self) = @_;
 
     for my $val_ar ( values %{ $self->{'to_fail'} } ) {
+        print STDERR "N::C::P - easy failed$/" if _DEBUG;
         my ($easy, $reason) = @$val_ar;
         $self->_finish_handle( $easy, 1, $reason );
     }
@@ -415,6 +416,8 @@ sub _clear_failed {
 
 sub _process_pending {
     my ($self) = @_;
+
+    print STDERR "N::C::P - processing$/" if _DEBUG;
 
     $self->_clear_failed();
 
