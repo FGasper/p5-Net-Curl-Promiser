@@ -38,6 +38,8 @@ SKIP: {
 
     $cv->recv();
 
+    diag "Finished event loop: $0";
+
     $server->finish();
 }
 

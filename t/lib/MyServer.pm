@@ -55,9 +55,14 @@ sub new {
 
 sub finish {
     $_[0]->{'finished'} ||= do {
+        my $pid = $_[0]->{'pid'};
+        diag "FINISHING SERVER: PID $pid ($0)";
+
         syswrite $_[0]->{'end_fh'}, 'x';
 
-        waitpid $_[0]->{'pid'}, 0;
+        waitpid $pid, 0;
+
+        diag "REAPED SERVER: PID $pid ($0)";
     };
 
     return;
@@ -136,6 +141,10 @@ sub run {
     while (!-s $end_fh) {
         my $got = select my $rout = $rin, undef, undef, 0.1;
 
+        if ($got < 0) {
+            warn "select(): $!";
+        }
+
         next if $got <= 0;
 
         accept( my $cln, $socket );
@@ -159,4 +168,6 @@ sub run {
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
         diag "PID $$ wrote response";
     }
+
+    diag "PID $$ received request to shut down";
 }
