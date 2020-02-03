@@ -26,12 +26,14 @@ sub sigchld_handler {
 sub run {
     my ($promiser, $port) = @_;
 
+    diag "============ running $0";
+
     my @promises = map {
         my $path = $_;
         my $easy = Net::Curl::Easy->new();
         $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$port/$path" );
 
-        # $easy->setopt( CURLOPT_VERBOSE() => 1 );
+        $easy->setopt( CURLOPT_VERBOSE() => 1 );
 
         $_ = q<> for @{$easy}{ qw(_head _body) };
         $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );

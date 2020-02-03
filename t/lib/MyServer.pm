@@ -39,6 +39,8 @@ sub new {
         exit( $ok ? 0 : 1 );
     };
 
+    diag "server pid: $pid ($0)";
+
     close $srv;
 
     return bless [$pid, $port], $class;
@@ -109,10 +111,14 @@ sub run {
     while (1) {
         accept( my $cln, $socket );
 
+        diag "PID $$ received connection";
+
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf );
         }
+
+        diag "PID $$ received headers";
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
@@ -122,5 +128,7 @@ sub run {
         syswrite $cln, $MyServer::CRLF;
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
+        diag "PID $$ wrote response";
+
     }
 }
