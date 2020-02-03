@@ -27,7 +27,7 @@ sub new {
 
     my ($port) = Socket::unpack_sockaddr_in(getsockname $srv);
 
-    diag "SERVER PORT: [$port]";
+    diag "SERVER PORT: [$port] ($0)";
 
     my $pid = fork or do {
         my $ok = eval {
