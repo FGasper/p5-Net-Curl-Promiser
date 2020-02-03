@@ -26,7 +26,8 @@ sub sigchld_handler {
 sub run {
     my ($promiser, $port) = @_;
 
-    diag "============ running $0";
+    my $libcurl = Net::Curl::version();
+    diag "============ running $0 (libcurl $libcurl)";
 
     my @promises = map {
         my $path = $_;
