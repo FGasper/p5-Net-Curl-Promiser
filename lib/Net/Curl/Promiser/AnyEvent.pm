@@ -99,6 +99,7 @@ sub _io {
         fh => $fd,
         poll => $direction,
         cb => sub {
+            print STDERR "N::C::P - FD $fd event $direction$/" if $self->_DEBUG;
             $self->_process_in_loop($fd, $action_num);
         },
     );
