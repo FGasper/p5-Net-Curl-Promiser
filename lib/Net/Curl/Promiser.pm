@@ -57,6 +57,8 @@ Promise::ES6.)
 
 use Net::Curl::Multi ();
 
+use constant _DEBUG => 1;
+
 use constant _DEFAULT_TIMEOUT => 1000;
 
 use constant PROMISE_CLASS => 'Promise::ES6';
@@ -349,15 +351,23 @@ sub _socket_fn {
     my ( $fd, $action, $self ) = @_[2, 3, 5];
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
+        print STDERR "N::C::P - FD $fd in$/" if _DEBUG;
+
         $self->_SET_POLL_IN($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
+        print STDERR "N::C::P - FD $fd out$/" if _DEBUG;
+
         $self->_SET_POLL_OUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
+        print STDERR "N::C::P - FD $fd inout$/" if _DEBUG;
+
         $self->_SET_POLL_INOUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
+        print STDERR "N::C::P - FD $fd remove$/" if _DEBUG;
+
         $self->_STOP_POLL($fd);
         $self->{'_removed_fd'} = $fd;
     }
@@ -366,16 +376,6 @@ sub _socket_fn {
     }
 
     return 0;
-}
-
-sub _socket_action {
-    my ($self, $fd, $direction) = @_;
-
-    my $is_active = $self->{'multi'}->socket_action( $fd, $direction );
-
-    $self->_process_pending();
-
-    return $is_active;
 }
 
 sub _finish_handle {
@@ -419,6 +419,7 @@ sub _process_pending {
     $self->_clear_failed();
 
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
+        print STDERR "N::C::P - easy finished$/" if _DEBUG;
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
             die "Unrecognized info_read() message: [$msg]";
