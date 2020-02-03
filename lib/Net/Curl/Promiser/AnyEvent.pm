@@ -95,6 +95,8 @@ sub _cb_timer {
 sub _io {
     my ($self, $fd, $direction, $action_num) = @_;
 
+    print STDERR "N::C::P - FD $fd poll $direction$/" if $self->_DEBUG;
+
     $self->{'_watches'}{$fd}{$direction} = AnyEvent->io(
         fh => $fd,
         poll => $direction,
