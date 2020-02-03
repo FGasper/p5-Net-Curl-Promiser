@@ -24,7 +24,7 @@ SKIP: {
 
     local $SIG{'ALRM'} = 60;
 
-    local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
+    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
 
     my $server = MyServer->new();
 
@@ -37,6 +37,10 @@ SKIP: {
     ClientTest::run($promiser, $port)->finally(sub { $loop->stop() });
 
     $loop->run();
+
+    diag "Finished event loop: $0";
+
+    $server->finish();
 }
 
 done_testing();

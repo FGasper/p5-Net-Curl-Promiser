@@ -22,10 +22,10 @@ plan tests => $ClientTest::TEST_COUNT;
 {
     local $SIG{'ALRM'} = 60;
 
-    local $SIG{'CHLD'} = sub {
-        my $pid = waitpid -1, 1;
-        die "Subprocess $pid ended prematurely!";
-    };
+#    local $SIG{'CHLD'} = sub {
+#        my $pid = waitpid -1, 1;
+#        die "Subprocess $pid ended prematurely!";
+#    };
 
     my $server = MyServer->new();
 
@@ -56,7 +56,9 @@ plan tests => $ClientTest::TEST_COUNT;
         $promiser->process($rout, $wout);
     }
 
-    diag "Finished event loop";
+    diag "Finished event loop: $0";
+
+    $server->finish();
 }
 
 done_testing();

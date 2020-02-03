@@ -6,6 +6,7 @@ use autodie;
 
 use Test::More;
 
+use File::Temp;
 use Time::HiRes;
 use Socket;
 
@@ -25,13 +26,15 @@ sub new {
 
     my $srv = _create_socket();
 
+    my $end_fh = File::Temp::tempfile();
+
     my ($port) = Socket::unpack_sockaddr_in(getsockname $srv);
 
     diag "SERVER PORT: [$port] ($0)";
 
     my $pid = fork or do {
         my $ok = eval {
-            CustomServer::HTTP::run($srv);
+            CustomServer::HTTP::run($srv, $end_fh);
             1;
         };
 
@@ -43,7 +46,21 @@ sub new {
 
     close $srv;
 
-    return bless [$pid, $port], $class;
+    return bless {
+        pid => $pid,
+        port => $port,
+        end_fh => $end_fh
+    }, $class;
+}
+
+sub finish {
+    $_[0]->{'finished'} ||= do {
+        syswrite $_[0]->{'end_fh'}, 'x';
+
+        waitpid $_[0]->{'pid'}, 0;
+    };
+
+    return;
 }
 
 sub _create_socket {
@@ -56,47 +73,50 @@ sub _create_socket {
     return $srv;
 }
 
-sub port { $_[0][1] }
+sub port { $_[0]->{'port'} }
 
 sub DESTROY {
-    my ($self ) = @_;
+    my ($self) = @_;
 
-    local $SIG{'CHLD'};
-
-    my $pid = $self->[0];
-
-    my $SIG = 'QUIT';
-
-    diag "Destroying server (PID $pid) via SIG$SIG …";
-
-    my $reaped;
-
-    while ( 1 ) {
-        if (1 == waitpid $pid, 1) {
-            diag "Reaped";
-
-            $reaped = 1;
-            last;
-        }
-
-        CORE::kill($SIG, $pid) or do {
-            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
-            last;
-        };
-
-        Time::HiRes::sleep(0.1);
-    }
-
-    if (!$reaped) {
-        diag "Done sending SIG$SIG; waiting …";
-
-        waitpid $pid, 0;
-    }
-
-    diag "Finished waiting.";
-
-    return;
+    $self->finish();
 }
+
+#    local $SIG{'CHLD'};
+#
+#    my $pid = $self->{'pid'};
+#
+#    my $SIG = 'QUIT';
+#
+#    diag "Destroying server (PID $pid) via SIG$SIG …";
+#
+#    my $reaped;
+#
+#    while ( 1 ) {
+#        if (1 == waitpid $pid, 1) {
+#            diag "Reaped";
+#
+#            $reaped = 1;
+#            last;
+#        }
+#
+#        CORE::kill($SIG, $pid) or do {
+#            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
+#            last;
+#        };
+#
+#        Time::HiRes::sleep(0.1);
+#    }
+#
+#    if (!$reaped) {
+#        diag "Done sending SIG$SIG; waiting …";
+#
+#        waitpid $pid, 0;
+#    }
+#
+#    diag "Finished waiting.";
+#
+#    return;
+#}
 
 #----------------------------------------------------------------------
 package CustomServer::HTTP;
@@ -108,9 +128,16 @@ use Test::More;
 # A blocking, non-forking server.
 # Written this way to achieve maximum simplicity.
 sub run {
-    my ($socket) = @_;
+    my ($socket, $end_fh) = @_;
 
-    while (1) {
+    my $rin = q<>;
+    vec( $rin, fileno($socket), 1 ) = 1;
+
+    while (!-s $end_fh) {
+        my $got = select my $rout = $rin, undef, undef, 0.1;
+
+        next if $got <= 0;
+
         accept( my $cln, $socket );
 
         diag "PID $$ received connection";
@@ -131,6 +158,5 @@ sub run {
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
         diag "PID $$ wrote response";
-
     }
 }

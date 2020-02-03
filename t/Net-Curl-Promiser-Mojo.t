@@ -31,7 +31,7 @@ SKIP: {
 
     local $SIG{'ALRM'} = 60;
 
-    local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
+    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
 
     my $server = MyServer->new();
 
@@ -48,6 +48,10 @@ SKIP: {
     my $pr2 = $promise->finally( sub { Mojo::IOLoop->stop() } );
 
     Mojo::IOLoop->start();
+
+    diag "Finished event loop: $0";
+
+    $server->finish();
 }
 
 done_testing();

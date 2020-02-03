@@ -37,6 +37,8 @@ SKIP: {
     ClientTest::run($promiser, $port)->finally($cv);
 
     $cv->recv();
+
+    $server->finish();
 }
 
 done_testing();
