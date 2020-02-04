@@ -19,9 +19,8 @@ before_install:
     - eval $(curl https://travis-perl.github.io/init) --auto
     - "sudo apt-get install libcurl4-openssl-dev"
     - cpanm --notest AnyEvent || true
-#    - cpanm --notest IO::Async  # hangs
-#    - cpanm --notest Test::More Time::Local Mojo::IOLoop || true
-    - cpanm --notest Test::More Time::Local || true
+    - cpanm --notest IO::Async
+    - cpanm --notest Test::More Time::Local Mojo::IOLoop || true
     - cpanm --notest ExtUtils::MakeMaker || true
 
 jobs:
