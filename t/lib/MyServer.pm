@@ -131,6 +131,9 @@ sub run {
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
 
         print STDERR "Server ($$) wrote response for $uri_path\n";
+
+        shutdown $cln, 0;
+        1 while sysread $cln, my $throwaway, 65536;
     }
 
     print STDERR "Server ($$) received request to shut down\n";
