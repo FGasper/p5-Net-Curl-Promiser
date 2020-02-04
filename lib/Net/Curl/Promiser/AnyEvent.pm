@@ -65,7 +65,9 @@ sub _cb_timer {
 
     if ($timeout_ms) {
         my $cb = sub {
+print STDERR "before timeout $timeout_ms\n";
             $self->_time_out_in_loop();
+print STDERR "after timeout $timeout_ms\n";
         };
 
         if ($timeout_ms < 0) {
@@ -85,7 +87,9 @@ sub _cb_timer {
         }
     }
     else {
+print STDERR "before timeout $timeout_ms\n";
         $self->_time_out_in_loop();
+print STDERR "after timeout $timeout_ms\n";
     }
 
     return 1;
