@@ -368,6 +368,7 @@ sub _socket_fn {
         $self->_STOP_POLL($fd);
 
         # In case we got a read and a remove right away.
+        # This *may* not be needed but doesn’t seem to hurt.
         $self->_process_pending();
     }
     else {
@@ -380,37 +381,37 @@ sub _socket_fn {
 sub _finish_handle {
     my ($self, $easy, $cb_idx, $payload) = @_;
 
-    # As of v0.43 Net::Curl doesn’t report errors in callbacks.
-    my $ok = eval {
-        print STDERR "=== Finished: $easy\n";
+    my $err = $@;
 
-            delete $self->{'to_fail'}{$easy};
+    # Don’t depend on the caller to report failures.
+    # (AnyEvent, for example, blackholes them.)
+    warn if !eval {
+        delete $self->{'to_fail'}{$easy};
 
-            $self->{'multi'}->remove_handle( $easy );
-
-            if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-        print STDERR "=== Callback $easy: $cb_idx\n";
-                $cb_ar->[$cb_idx]->($payload);
-        print STDERR "=== after callback $easy: $cb_idx\n";
-            }
-            elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
-                if ($cb_idx) {
-                    $deferred->reject($payload);
-                }
-                else {
-                    $deferred->resolve($payload);
-                }
+        if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
+            $cb_ar->[$cb_idx]->($payload);
+        }
+        elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
+            if ($cb_idx) {
+                $deferred->reject($payload);
             }
             else {
-
-                # This shouldn’t happen, but just in case:
-                require Data::Dumper;
-                print STDERR Data::Dumper::Dumper( ORPHAN => $easy => $payload );
+                $deferred->resolve($payload);
             }
-        print STDERR "=== Done Finished: $easy\n";
+        }
+        else {
+
+            # This shouldn’t happen, but just in case:
+            require Data::Dumper;
+            print STDERR Data::Dumper::Dumper( ORPHAN => $easy => $payload );
+        }
+
+        $self->{'multi'}->remove_handle( $easy );
+
+        1;
     };
 
-    warn if !$ok;
+    $@ = $err;
 
     return;
 }
@@ -433,7 +434,6 @@ sub _process_pending {
 
     $self->_clear_failed();
 
-print STDERR "==== start checking for finished easies\n";
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
@@ -445,7 +445,6 @@ print STDERR "==== start checking for finished easies\n";
             ($result == 0) ? ( 0 => $easy ) : ( 1 => $result ),
         );
     }
-print STDERR "==== done checking for finished easies\n";
 
     return;
 }
