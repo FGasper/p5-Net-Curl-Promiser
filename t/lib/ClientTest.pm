@@ -49,7 +49,7 @@ sub run {
             sub {
                 my ($easy) = shift;
 
-                diag "PROMISE CALLBACK for $path";
+                diag "PROMISE CALLBACK ($$) for $path";
 
                 like($easy->{'_head'}, qr<\A$MyServer::HEAD_START>, "headers: $path" );
 
