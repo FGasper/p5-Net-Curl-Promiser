@@ -386,9 +386,9 @@ print STDERR "=== Finished: $easy\n";
     $self->{'multi'}->remove_handle( $easy );
 
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-print STDERR "=== Callback: $cb_idx\n";
+print STDERR "=== Callback $easy: $cb_idx\n";
         $cb_ar->[$cb_idx]->($payload);
-print STDERR "=== after callback: $cb_idx\n";
+print STDERR "=== after callback $easy: $cb_idx\n";
     }
     elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
         if ($cb_idx) {
@@ -398,6 +398,10 @@ print STDERR "=== after callback: $cb_idx\n";
             $deferred->resolve($payload);
         }
     }
+else {
+use Data::Dumper;
+print STDERR Dumper( "ORPHAN $easy" => $payload );
+}
 
     return;
 }
