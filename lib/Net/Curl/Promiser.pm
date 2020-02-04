@@ -379,6 +379,7 @@ sub _socket_fn {
 
 sub _finish_handle {
     my ($self, $easy, $cb_idx, $payload) = @_;
+eval {
 print STDERR "=== Finished: $easy\n";
 
     delete $self->{'to_fail'}{$easy};
@@ -402,6 +403,9 @@ else {
 use Data::Dumper;
 print STDERR Dumper( "ORPHAN $easy" => $payload );
 }
+print STDERR "=== Done Finished: $easy\n";
+};
+warn "XXXXXXXXXXXXXXXXXXX $@" if $@;
 
     return;
 }
