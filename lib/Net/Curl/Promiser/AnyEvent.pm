@@ -91,7 +91,7 @@ print STDERR "N::C::P::AE - after timeout ($timeout_ms)\n";
         );
     }
     else {
-        AnyEvent::postpone($cb);
+        &AnyEvent::postpone($cb);
     }
 
     return 1;
