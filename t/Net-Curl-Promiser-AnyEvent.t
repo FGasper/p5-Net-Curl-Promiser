@@ -45,6 +45,7 @@ SKIP: {
 #    };
 #    AnyEvent::postpone($say_loop_top);
 
+    print STDERR "starting event loop\n";
     $cv->recv();
 
     diag "Finished event loop: $0";
