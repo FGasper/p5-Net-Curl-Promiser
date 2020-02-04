@@ -96,6 +96,7 @@ sub _io {
     my ($self, $fd, $direction, $action_num) = @_;
 
     print STDERR "N::C::P - FD $fd poll $direction$/" if $self->_DEBUG;
+    print STDERR AnyEvent->now() . $/;
 
     $self->{'_watches'}{$fd}{$direction} = AnyEvent->io(
         fh => $fd,
@@ -142,10 +143,9 @@ sub _STOP_POLL {
     my ($self, $fd) = @_;
 
     print STDERR "N::C::P - FD $fd stop$/" if $self->_DEBUG;
+    print STDERR AnyEvent->now() . $/;
 
-    AnyEvent::postpone( sub {
-        delete $self->{'_watches'}{$fd};
-    } );
+    delete $self->{'_watches'}{$fd};
 
     return;
 }

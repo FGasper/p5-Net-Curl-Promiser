@@ -384,7 +384,7 @@ sub _finish_handle {
 use Data::Dumper;
 $Data::Dumper::Deparse = 1;
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-print STDERR Dumper("callback", $cb_ar->[$cb_idx], $payload);
+print STDERR Dumper("resolving", $payload);
         $cb_ar->[$cb_idx]->($payload);
     }
     elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {

@@ -38,6 +38,13 @@ SKIP: {
 
     my $p = ClientTest::run($promiser, $port)->finally($cv);
 
+#    my $say_loop_top;
+#    $say_loop_top = sub {
+#        print STDERR "======== LOOP TOP\n";
+#        AnyEvent::postpone($say_loop_top);
+#    };
+#    AnyEvent::postpone($say_loop_top);
+
     $cv->recv();
 
     diag "Finished event loop: $0";
