@@ -141,7 +141,11 @@ sub _SET_POLL_INOUT {
 sub _STOP_POLL {
     my ($self, $fd) = @_;
 
-    delete $self->{'_watches'}{$fd};
+    print STDERR "N::C::P - FD $fd stop$/" if $self->_DEBUG;
+
+    AnyEvent::postpone( sub {
+        delete $self->{'_watches'}{$fd};
+    } );
 
     return;
 }

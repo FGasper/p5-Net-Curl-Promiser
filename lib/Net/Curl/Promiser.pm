@@ -268,7 +268,6 @@ sub process {
 my @fd_action = %$fd_action_hr;
 print STDERR "N::C::P - process @fd_action$/" if _DEBUG;
         for my $fd (keys %$fd_action_hr) {
-            local $self->{'_removed_fd'};
             $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
         }
     }
@@ -354,25 +353,16 @@ sub _socket_fn {
     my ( $fd, $action, $self ) = @_[2, 3, 5];
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
-        print STDERR "N::C::P - FD $fd in$/" if _DEBUG;
-
         $self->_SET_POLL_IN($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
-        print STDERR "N::C::P - FD $fd out$/" if _DEBUG;
-
         $self->_SET_POLL_OUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
-        print STDERR "N::C::P - FD $fd inout$/" if _DEBUG;
-
         $self->_SET_POLL_INOUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
-        print STDERR "N::C::P - FD $fd remove$/" if _DEBUG;
-
         $self->_STOP_POLL($fd);
-        $self->{'_removed_fd'} = $fd;
 
         # In case we got a read and a remove right away.
         $self->_process_pending();
