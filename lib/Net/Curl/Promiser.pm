@@ -402,6 +402,10 @@ sub _finish_handle {
             $deferred->resolve($payload);
         }
     }
+else {
+use Data::Dumper;
+print STDERR Dumper( FINISH_MISS => $self->{'deferred'} );
+}
 
     return;
 }
@@ -428,7 +432,7 @@ sub _process_pending {
     $self->_clear_failed();
 
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
-        print STDERR "N::C::P - easy finished$/" if _DEBUG;
+        print STDERR "N::C::P - easy finished (result=$result)$/" if _DEBUG;
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
             die "Unrecognized info_read() message: [$msg]";

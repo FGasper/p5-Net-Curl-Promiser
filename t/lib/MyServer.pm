@@ -166,7 +166,7 @@ sub run {
         syswrite $cln, $MyServer::CRLF;
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
-        diag "PID $$ wrote response";
+        diag "PID $$ wrote response for $uri_path";
     }
 
     diag "PID $$ received request to shut down";
