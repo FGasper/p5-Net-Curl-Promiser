@@ -262,19 +262,14 @@ Returns I<OBJ>.
 sub process {
     my ($self, @fd_action_args) = @_;
 
-print STDERR "N::C::P - process(@fd_action_args)\n";
-
     my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
 
     if (%$fd_action_hr) {
-my @fd_action = %$fd_action_hr;
-print STDERR "N::C::P - process @fd_action$/" if _DEBUG;
         for my $fd (keys %$fd_action_hr) {
             $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
         }
     }
     else {
-print STDERR "N::C::P - process, timeout$/" if _DEBUG;
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
@@ -356,7 +351,6 @@ sub _socket_fn {
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
         $self->_SET_POLL_IN($fd);
-# $self->{'multi'}->socket_action($fd, Net::Curl::Multi::CURL_POLL_IN);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
         $self->_SET_POLL_OUT($fd);
@@ -384,10 +378,7 @@ sub _finish_handle {
 
     $self->{'multi'}->remove_handle( $easy );
 
-use Data::Dumper;
-$Data::Dumper::Deparse = 1;
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-print STDERR Dumper("resolving", $payload);
         $cb_ar->[$cb_idx]->($payload);
     }
     elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
@@ -398,9 +389,6 @@ print STDERR Dumper("resolving", $payload);
             $deferred->resolve($payload);
         }
     }
-else {
-print STDERR Dumper( FINISH_MISS => $self );
-}
 
     return;
 }
@@ -409,7 +397,6 @@ sub _clear_failed {
     my ($self) = @_;
 
     for my $val_ar ( values %{ $self->{'to_fail'} } ) {
-        print STDERR "N::C::P - easy failed$/" if _DEBUG;
         my ($easy, $reason) = @$val_ar;
         $self->_finish_handle( $easy, 1, $reason );
     }
@@ -422,13 +409,9 @@ sub _clear_failed {
 sub _process_pending {
     my ($self) = @_;
 
-    print STDERR "N::C::P - processing$/" if _DEBUG;
-
     $self->_clear_failed();
 
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
-        print STDERR "N::C::P - easy finished (result=$result)$/" if _DEBUG;
-
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
             die "Unrecognized info_read() message: [$msg]";
         }
