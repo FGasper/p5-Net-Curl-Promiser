@@ -68,6 +68,8 @@ sub _cb_timer {
 print STDERR "before timeout $timeout_ms\n";
             $self->_time_out_in_loop();
 print STDERR "after timeout $timeout_ms\n";
+use Data::Dumper;
+print STDERR Dumper $self->{'callbacks'};
         };
 
         if ($timeout_ms < 0) {

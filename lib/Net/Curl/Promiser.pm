@@ -417,7 +417,7 @@ sub _process_pending {
 
     $self->_clear_failed();
 
-print STDERR "==== checking for finished easies\n";
+print STDERR "==== start checking for finished easies\n";
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
@@ -429,6 +429,7 @@ print STDERR "==== checking for finished easies\n";
             ($result == 0) ? ( 0 => $easy ) : ( 1 => $result ),
         );
     }
+print STDERR "==== done checking for finished easies\n";
 
     return;
 }
