@@ -73,7 +73,7 @@ print STDERR "N::C::P::AE - after timeout ($timeout_ms)\n";
 use Data::Dumper;
 print STDERR Dumper( $watches_hr );
 
-        # $self->_process_pending();
+        $self->_process_pending();
 
         return;
     };
