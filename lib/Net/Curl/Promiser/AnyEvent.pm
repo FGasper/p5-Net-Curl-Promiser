@@ -84,11 +84,14 @@ print STDERR "N::C::P::AE - after timeout ($timeout_ms)\n";
             );
         }
     }
-    else {
+    elsif ($timeout_ms) {
         $self->{timer} = AnyEvent->timer(
             after => $timeout_ms / 1000,
             cb => $cb,
         );
+    }
+    else {
+        AnyEvent::postpone($cb);
     }
 
     return 1;
