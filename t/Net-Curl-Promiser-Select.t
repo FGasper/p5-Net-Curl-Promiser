@@ -20,8 +20,6 @@ use ClientTest;
 plan tests => $ClientTest::TEST_COUNT;
 
 {
-ok 1;
-last;
     my $server = MyServer->new();
 
     my $promiser = Net::Curl::Promiser::Select->new();
