@@ -30,7 +30,7 @@ sub new {
 
     my ($port) = Socket::unpack_sockaddr_in(getsockname $srv);
 
-    diag "SERVER PORT: [$port] ($0)";
+    diag "SERVER PORT: [$port]";
 
     my $pid = fork or do {
         my $ok = eval {
@@ -42,7 +42,7 @@ sub new {
         exit( $ok ? 0 : 1 );
     };
 
-    diag "server pid: $pid ($0)";
+    diag "SERVER PORT: $pid";
 
     close $srv;
 
@@ -56,13 +56,13 @@ sub new {
 sub finish {
     $_[0]->{'finished'} ||= do {
         my $pid = $_[0]->{'pid'};
-        diag "FINISHING SERVER: PID $pid ($0)";
+        diag "FINISHING SERVER: PID $pid";
 
         syswrite $_[0]->{'end_fh'}, 'x';
 
         waitpid $pid, 0;
 
-        diag "REAPED SERVER: PID $pid ($0)";
+        diag "REAPED SERVER: PID $pid";
     };
 
     return;
@@ -85,43 +85,6 @@ sub DESTROY {
 
     $self->finish();
 }
-
-#    local $SIG{'CHLD'};
-#
-#    my $pid = $self->{'pid'};
-#
-#    my $SIG = 'QUIT';
-#
-#    diag "Destroying server (PID $pid) via SIG$SIG …";
-#
-#    my $reaped;
-#
-#    while ( 1 ) {
-#        if (1 == waitpid $pid, 1) {
-#            diag "Reaped";
-#
-#            $reaped = 1;
-#            last;
-#        }
-#
-#        CORE::kill($SIG, $pid) or do {
-#            warn "kill($SIG, $pid): $!" if !$!{'ESRCH'};
-#            last;
-#        };
-#
-#        Time::HiRes::sleep(0.1);
-#    }
-#
-#    if (!$reaped) {
-#        diag "Done sending SIG$SIG; waiting …";
-#
-#        waitpid $pid, 0;
-#    }
-#
-#    diag "Finished waiting.";
-#
-#    return;
-#}
 
 #----------------------------------------------------------------------
 package CustomServer::HTTP;
@@ -147,17 +110,12 @@ sub run {
 
         next if $got <= 0;
 
-        print STDERR "Server ($$) accepting connection …\n";
         accept( my $cln, $socket );
-
-        print STDERR "Server ($$) received connection\n";
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf );
         }
-
-        print STDERR "Server ($$) received headers\n";
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
@@ -167,8 +125,5 @@ sub run {
         syswrite $cln, $MyServer::CRLF;
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
-        print STDERR "Server ($$) wrote response for $uri_path\n";
     }
-
-    print STDERR "Server ($$) received request to shut down\n";
 }

@@ -30,7 +30,7 @@ SKIP: {
 
     my $cv = AnyEvent->condvar();
 
-    my $p = ClientTest::run($promiser, $port)->finally($cv);
+    ClientTest::run($promiser, $port)->finally($cv);
 
     $cv->recv();
 
