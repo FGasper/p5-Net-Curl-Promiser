@@ -356,6 +356,7 @@ sub _socket_fn {
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
         $self->_SET_POLL_IN($fd);
+$self->{'multi'}->socket_action($fd, Net::Curl::Multi::CURL_POLL_IN);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
         $self->_SET_POLL_OUT($fd);
