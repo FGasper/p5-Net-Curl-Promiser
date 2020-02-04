@@ -45,20 +45,23 @@ sub run {
         # Even on the slowest machines this ought to be it.
         $easy->setopt( CURLOPT_TIMEOUT() => 30 );
 
-        $promiser->add_handle($easy)->then( sub {
-            my ($easy) = shift;
+        $promiser->add_handle($easy)->then(
+            sub {
+                my ($easy) = shift;
 
-            diag "PID $$ received response for $path";
+                diag "PROMISE CALLBACK for $path";
 
-            like($easy->{'_head'}, qr<\A$MyServer::HEAD_START>, "headers: $path" );
+                like($easy->{'_head'}, qr<\A$MyServer::HEAD_START>, "headers: $path" );
 
-            if ($path eq 'biggie') {
-                is( $easy->{'_body'}, $MyServer::BIGGIE, "payload: $path" );
-            }
-            else {
-                is( $easy->{'_body'}, "/$path", "payload: $path" );
-            }
-        }, sub { warn "REJECT $path: @_\n" } );
+                if ($path eq 'biggie') {
+                    is( $easy->{'_body'}, $MyServer::BIGGIE, "payload: $path" );
+                }
+                else {
+                    is( $easy->{'_body'}, "/$path", "payload: $path" );
+                }
+            },
+            sub { warn "REJECT $path: @_\n" },
+        );
     } _paths();
 
     my $promise_class = (ref $promises[0]);

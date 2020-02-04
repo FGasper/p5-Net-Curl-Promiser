@@ -147,16 +147,17 @@ sub run {
 
         next if $got <= 0;
 
+        print STDERR "Server ($$) accepting connection …\n";
         accept( my $cln, $socket );
 
-        diag "PID $$ received connection";
+        print STDERR "Server ($$) received connection\n";
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf );
         }
 
-        diag "PID $$ received headers";
+        print STDERR "Server ($$) received headers\n";
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
@@ -166,8 +167,8 @@ sub run {
         syswrite $cln, $MyServer::CRLF;
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
-        diag "PID $$ wrote response for $uri_path";
+        print STDERR "Server ($$) wrote response for $uri_path\n";
     }
 
-    diag "PID $$ received request to shut down";
+    print STDERR "Server ($$) received request to shut down\n";
 }
