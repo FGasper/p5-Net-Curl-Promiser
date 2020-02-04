@@ -386,7 +386,9 @@ print STDERR "=== Finished: $easy\n";
     $self->{'multi'}->remove_handle( $easy );
 
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
+print STDERR "=== Callback: $cb_idx\n";
         $cb_ar->[$cb_idx]->($payload);
+print STDERR "=== after callback: $cb_idx\n";
     }
     elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
         if ($cb_idx) {

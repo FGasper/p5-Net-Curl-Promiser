@@ -30,7 +30,11 @@ SKIP: {
 
     my $cv = AnyEvent->condvar();
 
+print STDERR "==== before run\n";
+
     ClientTest::run($promiser, $port)->finally($cv);
+
+print STDERR "==== before loop\n";
 
     $cv->recv();
 
