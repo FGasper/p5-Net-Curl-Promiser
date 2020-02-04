@@ -61,12 +61,17 @@ sub _INIT {
 sub _cb_timer {
     my ($multi, $timeout_ms, $self) = @_;
 
+    my $watches_hr = ($self->{'_watches'} ||= {});
+
     my $cb = sub {
         #$self->_time_out_in_loop();
         #$multi->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
 print STDERR "N::C::P::AE - before timeout ($timeout_ms)\n";
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
 print STDERR "N::C::P::AE - after timeout ($timeout_ms)\n";
+
+use Data::Dumper;
+print STDERR Dumper( $watches_hr );
 
         # $self->_process_pending();
 
