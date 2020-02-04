@@ -26,6 +26,8 @@ sub sigchld_handler {
 sub run {
     my ($promiser, $port) = @_;
 
+    alarm 120;
+
     my $libcurl = Net::Curl::version();
     diag "============ running $0 (libcurl $libcurl)";
 
