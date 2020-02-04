@@ -64,7 +64,9 @@ sub _cb_timer {
     my $cb = sub {
         #$self->_time_out_in_loop();
         #$multi->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
+print STDERR "N::C::P::AE - before timeout\n";
         $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
+print STDERR "N::C::P::AE - after timeout\n";
 
         # $self->_process_pending();
 

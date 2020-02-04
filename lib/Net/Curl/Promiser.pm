@@ -262,6 +262,8 @@ Returns I<OBJ>.
 sub process {
     my ($self, @fd_action_args) = @_;
 
+print STDERR "N::C::P - process(@fd_action_args)\n";
+
     my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
 
     if (%$fd_action_hr) {
