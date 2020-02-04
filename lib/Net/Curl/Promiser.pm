@@ -366,6 +366,9 @@ sub _socket_fn {
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
         $self->_STOP_POLL($fd);
+
+        # In case we got a read and a remove right away.
+        $self->_process_pending();
     }
     else {
         warn "$self: Unrecognized action $action on FD $fd\n";
@@ -414,6 +417,7 @@ sub _process_pending {
 
     $self->_clear_failed();
 
+print STDERR "==== checking for finished easies\n";
     while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
 
         if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
