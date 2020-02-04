@@ -61,7 +61,7 @@ sub run {
     if ($promise_class->can('all')) {
         return $promise_class->all( $is_mojo ? @promises : \@promises );
     }
-    elsif (Promise::XS->can('all')) {
+    elsif ($promise_class->isa('Promise::XS::Promise')) {
         return Promise::XS::all(@promises);
     }
 
