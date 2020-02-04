@@ -35,6 +35,8 @@ sub run {
         # Even on the slowest machines this ought to be it.
         $easy->setopt( CURLOPT_TIMEOUT() => 30 );
 
+        print STDERR "adding $easy ($path) …\n";
+
         $promiser->add_handle($easy)->then(
             sub {
                 my ($easy) = shift;

@@ -379,6 +379,7 @@ sub _socket_fn {
 
 sub _finish_handle {
     my ($self, $easy, $cb_idx, $payload) = @_;
+print STDERR "=== Finished: $easy\n";
 
     delete $self->{'to_fail'}{$easy};
 
