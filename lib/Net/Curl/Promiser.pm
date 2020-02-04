@@ -391,7 +391,10 @@ sub _finish_handle {
 
     $self->{'multi'}->remove_handle( $easy );
 
+use Data::Dumper;
+$Data::Dumper::Deparse = 1;
     if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
+print STDERR Dumper("callback", $cb_ar->[$cb_idx], $payload);
         $cb_ar->[$cb_idx]->($payload);
     }
     elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
@@ -403,8 +406,7 @@ sub _finish_handle {
         }
     }
 else {
-use Data::Dumper;
-print STDERR Dumper( FINISH_MISS => $self->{'deferred'} );
+print STDERR Dumper( FINISH_MISS => $self );
 }
 
     return;
