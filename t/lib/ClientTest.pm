@@ -19,14 +19,14 @@ sub run {
     alarm 30;
 
     my $libcurl = Net::Curl::version();
-    diag "============ running $0 (libcurl $libcurl)";
+    diag "libcurl $libcurl";
 
     my @promises = map {
         my $path = $_;
         my $easy = Net::Curl::Easy->new();
         $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$port/$path" );
 
-        $easy->setopt( CURLOPT_VERBOSE() => 1 );
+        # $easy->setopt( CURLOPT_VERBOSE() => 1 );
 
         $_ = q<> for @{$easy}{ qw(_head _body) };
         $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
@@ -58,7 +58,14 @@ sub run {
 
     my $is_mojo = $promise_class->isa('Mojo::Promise');
 
-    return $promise_class->all( $is_mojo ? @promises : \@promises );
+    if ($promise_class->can('all')) {
+        return $promise_class->all( $is_mojo ? @promises : \@promises );
+    }
+    elsif (Promise::XS->can('all')) {
+        return Promise::XS::all(@promises);
+    }
+
+    die "No promise all()?";
 }
 
 1;

@@ -44,12 +44,18 @@ C<epoll>.)
 =head1 PROMISE IMPLEMENTATION
 
 This class’s default Promise implementation is L<Promise::ES6>.
-You can use a different one by overriding the L<PROMISE_CLASS()> method in
+You can use a different one by overriding the C<PROMISE_CLASS()> method in
 a subclass, as long as the substitute class’s C<new()> method works the
 same way as Promise::ES6’s (which itself follows the ECMAScript standard).
 
 (NB: L<Net::Curl::Promiser::Mojo> uses L<Mojo::Promise> instead of
 Promise::ES6.)
+
+=head2 B<Experimental> L<Promise::XS> support
+
+Try out experimental Promise::XS support by running with
+C<NET_CURL_PROMISER_PROMISE_ENGINE=Promise::XS> in your environment.
+This will override C<PROMISE_CLASS()>.
 
 =cut
 
