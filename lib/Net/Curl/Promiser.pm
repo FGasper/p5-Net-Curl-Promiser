@@ -379,33 +379,38 @@ sub _socket_fn {
 
 sub _finish_handle {
     my ($self, $easy, $cb_idx, $payload) = @_;
-eval {
-print STDERR "=== Finished: $easy\n";
 
-    delete $self->{'to_fail'}{$easy};
+    # As of v0.43 Net::Curl doesn’t report errors in callbacks.
+    my $ok = eval {
+        print STDERR "=== Finished: $easy\n";
 
-    $self->{'multi'}->remove_handle( $easy );
+            delete $self->{'to_fail'}{$easy};
 
-    if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-print STDERR "=== Callback $easy: $cb_idx\n";
-        $cb_ar->[$cb_idx]->($payload);
-print STDERR "=== after callback $easy: $cb_idx\n";
-    }
-    elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
-        if ($cb_idx) {
-            $deferred->reject($payload);
-        }
-        else {
-            $deferred->resolve($payload);
-        }
-    }
-else {
-use Data::Dumper;
-print STDERR Dumper( "ORPHAN $easy" => $payload );
-}
-print STDERR "=== Done Finished: $easy\n";
-};
-warn "XXXXXXXXXXXXXXXXXXX $@" if $@;
+            $self->{'multi'}->remove_handle( $easy );
+
+            if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
+        print STDERR "=== Callback $easy: $cb_idx\n";
+                $cb_ar->[$cb_idx]->($payload);
+        print STDERR "=== after callback $easy: $cb_idx\n";
+            }
+            elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
+                if ($cb_idx) {
+                    $deferred->reject($payload);
+                }
+                else {
+                    $deferred->resolve($payload);
+                }
+            }
+            else {
+
+                # This shouldn’t happen, but just in case:
+                require Data::Dumper;
+                print STDERR Data::Dumper::Dumper( ORPHAN => $easy => $payload );
+            }
+        print STDERR "=== Done Finished: $easy\n";
+    };
+
+    warn if !$ok;
 
     return;
 }

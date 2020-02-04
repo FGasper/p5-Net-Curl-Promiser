@@ -63,35 +63,28 @@ sub _cb_timer {
 
     delete $self->{'timer'};
 
-    if ($timeout_ms) {
-        my $cb = sub {
-print STDERR "before timeout $timeout_ms\n";
-            $self->_time_out_in_loop();
-print STDERR "after timeout $timeout_ms\n";
-use Data::Dumper;
-print STDERR Dumper $self->{'callbacks'};
-        };
+    # NB: It’s important that we not run _time_out_in_loop() immediately
+    # because if we add_handle() with an easy object that’s already
+    # completed, we’ll end up trying to remove a handle that hasn’t been
+    # added yet.
+    my $cb = sub {
+        $self->_time_out_in_loop();
+    };
 
-        if ($timeout_ms < 0) {
-            if ($multi->handles()) {
-                $self->{'timer'} = AnyEvent->timer(
-                    after => 5,
-                    interval => 5,
-                    cb => $cb,
-                );
-            }
-        }
-        else {
-            $self->{timer} = AnyEvent->timer(
-                after => $timeout_ms / 1000,
+    if ($timeout_ms < 0) {
+        if ($multi->handles()) {
+            $self->{'timer'} = AnyEvent->timer(
+                after => 5,
+                interval => 5,
                 cb => $cb,
             );
         }
     }
     else {
-print STDERR "before timeout $timeout_ms\n";
-        $self->_time_out_in_loop();
-print STDERR "after timeout $timeout_ms\n";
+        $self->{timer} = AnyEvent->timer(
+            after => $timeout_ms / 1000,
+            cb => $cb,
+        );
     }
 
     return 1;

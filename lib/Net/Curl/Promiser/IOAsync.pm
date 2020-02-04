@@ -78,7 +78,7 @@ sub _cb_timer {
             $after = $timeout_ms / 1000;
         }
 
-        if ( $after) {
+        if ($after) {
             $self->{'timer_id'} = $loop->watch_time(
                 after => $after,
                 code => sub {
@@ -88,7 +88,7 @@ sub _cb_timer {
         }
     }
     else {
-        $self->_time_out_in_loop();
+        $loop->later( sub { $self->_time_out_in_loop() } );
     }
 
     return 1;

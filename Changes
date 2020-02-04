@@ -2,7 +2,8 @@ Revision history for Perl module Net::Curl::Promiser
 
 0.07
 - Fix AnyEvent (broken in 0.06).
-- Make tests run with Promise::XS.
+- Fix longstanding race conditions in AnyEvent and IO::Async.
+- Make tests work with Promise::XS.
 
 0.06 Fri 31 Jan 2020
 - Add experimental Promise::XS support.
