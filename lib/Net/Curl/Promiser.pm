@@ -373,6 +373,9 @@ sub _socket_fn {
 
         $self->_STOP_POLL($fd);
         $self->{'_removed_fd'} = $fd;
+
+        # In case we got a read and a remove right away.
+        $self->_process_pending();
     }
     else {
         warn "$self: Unrecognized action $action on FD $fd\n";
