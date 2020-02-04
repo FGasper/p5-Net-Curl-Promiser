@@ -66,8 +66,6 @@ sub _cb_timer {
     if ($timeout_ms) {
         my $cb = sub {
             $self->_time_out_in_loop();
-
-            return;
         };
 
         if ($timeout_ms < 0) {
