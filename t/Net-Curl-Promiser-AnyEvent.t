@@ -5,7 +5,7 @@ use warnings;
 use autodie;
 
 use Test::More;
-use Test::FailWarnings;
+# use Test::FailWarnings;
 
 use Net::Curl::Easy;
 
