@@ -29,10 +29,6 @@ SKIP: {
 
     require Net::Curl::Promiser::Mojo;
 
-    local $SIG{'ALRM'} = 60;
-
-    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
-
     my $server = MyServer->new();
 
     my $port = $server->port();
@@ -48,8 +44,6 @@ SKIP: {
     my $pr2 = $promise->finally( sub { Mojo::IOLoop->stop() } );
 
     Mojo::IOLoop->start();
-
-    diag "Finished event loop: $0";
 
     $server->finish();
 }

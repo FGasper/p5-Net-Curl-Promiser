@@ -22,10 +22,6 @@ SKIP: {
 
     require Net::Curl::Promiser::IOAsync;
 
-    local $SIG{'ALRM'} = 60;
-
-    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
-
     my $server = MyServer->new();
 
     my $port = $server->port();
@@ -37,8 +33,6 @@ SKIP: {
     ClientTest::run($promiser, $port)->finally(sub { $loop->stop() });
 
     $loop->run();
-
-    diag "Finished event loop: $0";
 
     $server->finish();
 }

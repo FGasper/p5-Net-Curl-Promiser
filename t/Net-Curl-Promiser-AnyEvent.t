@@ -5,7 +5,7 @@ use warnings;
 use autodie;
 
 use Test::More;
-# use Test::FailWarnings;
+use Test::FailWarnings;
 
 use Net::Curl::Easy;
 
@@ -17,16 +17,10 @@ use ClientTest;
 
 plan tests => $ClientTest::TEST_COUNT;
 
-$ENV{PERL_ANYEVENT_VERBOSE} = 8;
-
 SKIP: {
     eval { require AnyEvent; 1 } or skip "AnyEvent isn’t available: $@", $ClientTest::TEST_COUNT;
 
     require Net::Curl::Promiser::AnyEvent;
-
-    local $SIG{'ALRM'} = 60;
-
-    # local $SIG{'CHLD'} = \&ClientTest::sigchld_handler;
 
     my $server = MyServer->new();
 
@@ -38,17 +32,7 @@ SKIP: {
 
     my $p = ClientTest::run($promiser, $port)->finally($cv);
 
-#    my $say_loop_top;
-#    $say_loop_top = sub {
-#        print STDERR "======== LOOP TOP\n";
-#        AnyEvent::postpone($say_loop_top);
-#    };
-#    AnyEvent::postpone($say_loop_top);
-
-    print STDERR "starting event loop\n";
     $cv->recv();
-
-    diag "Finished event loop: $0";
 
     $server->finish();
 }

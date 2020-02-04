@@ -13,20 +13,10 @@ use constant _paths => qw( foo bar biggie baz qux quux );
 
 our $TEST_COUNT = 2 * _paths();
 
-sub sigchld_handler {
-    my $pid = waitpid -1, 1;
-    my $sig = $? & 0x7f;
-    my $exit = $? >> 8;
-
-    my $msg = "Subprocess $pid ended prematurely! (signal: $sig, exit: $exit)";
-    diag $msg;
-    die $msg;
-}
-
 sub run {
     my ($promiser, $port) = @_;
 
-    alarm 120;
+    alarm 30;
 
     my $libcurl = Net::Curl::version();
     diag "============ running $0 (libcurl $libcurl)";
@@ -44,8 +34,6 @@ sub run {
 
         # Even on the slowest machines this ought to be it.
         $easy->setopt( CURLOPT_TIMEOUT() => 30 );
-
-print STDERR "sending request: $path\n";
 
         $promiser->add_handle($easy)->then(
             sub {
