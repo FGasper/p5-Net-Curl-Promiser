@@ -36,6 +36,7 @@ WriteMakefile1(
         'Test::Fatal'       => 0,
         'Test::Deep' => 0,
         'Test::Class::Tiny' => 0,
+'Carp::Always' => 0,
     },
 );
 

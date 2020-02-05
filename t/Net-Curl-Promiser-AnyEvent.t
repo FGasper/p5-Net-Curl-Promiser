@@ -20,6 +20,8 @@ plan tests => $ClientTest::TEST_COUNT;
 SKIP: {
     eval { require AnyEvent; 1 } or skip "AnyEvent isn’t available: $@", $ClientTest::TEST_COUNT;
 
+    diag "Using AnyEvent $AnyEvent::VERSION";
+
     require Net::Curl::Promiser::AnyEvent;
 
     my $server = MyServer->new();
@@ -30,11 +32,7 @@ SKIP: {
 
     my $cv = AnyEvent->condvar();
 
-print STDERR "==== before run\n";
-
     ClientTest::run($promiser, $port)->finally($cv);
-
-print STDERR "==== before loop\n";
 
     $cv->recv();
 

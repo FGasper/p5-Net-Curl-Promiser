@@ -20,6 +20,8 @@ plan tests => $ClientTest::TEST_COUNT;
 SKIP: {
     eval { require IO::Async::Loop; 1 } or skip "IO::Async isn’t available: $@", $ClientTest::TEST_COUNT;
 
+    diag "Using IO::Async::Loop $IO::Async::Loop::VERSION";
+
     require Net::Curl::Promiser::IOAsync;
 
     my $server = MyServer->new();

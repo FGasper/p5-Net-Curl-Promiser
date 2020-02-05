@@ -93,7 +93,6 @@ sub _cb_timer {
     }
     else {
         $loop->later( sub { $self->_time_out_in_loop() } );
-        # $self->_time_out_in_loop();
     }
 
     return 1;
@@ -160,7 +159,11 @@ sub _SET_POLL_INOUT {
 sub _STOP_POLL {
     my ($self, $fd) = @_;
 
-    $self->{'_loop'}->remove( delete $self->{'_handle'}{$fd} );
+    use Carp::Always;
+
+    $self->{'_loop'}->remove(
+        delete($self->{'_handle'}{$fd}) || die "Already removed FD $fd!",
+    );
 
     return;
 }
