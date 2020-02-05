@@ -2,6 +2,8 @@ Revision history for Perl module Net::Curl::Promiser
 
 0.07
 - Fix race conditions in AnyEvent and IO::Async.
+- Accommodate old libcurl versions (e.g., 7.29) that fire extra
+  stop-poll callbacks.
 - Make tests work with Promise::XS.
 - Tests now print the version of the event loop being used.
 

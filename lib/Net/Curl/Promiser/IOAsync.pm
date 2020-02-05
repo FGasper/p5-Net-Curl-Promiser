@@ -159,11 +159,12 @@ sub _SET_POLL_INOUT {
 sub _STOP_POLL {
     my ($self, $fd) = @_;
 
-    use Carp::Always;
-
-    $self->{'_loop'}->remove(
-        delete($self->{'_handle'}{$fd}) || die "Already removed FD $fd!",
-    );
+    if ( my $fh = delete $self->{'_handle'}{$fd} ) {
+        $self->{'_loop'}->remove($fh);
+    }
+    else {
+        $self->_handle_extra_stop_poll($fd);
+    }
 
     return;
 }

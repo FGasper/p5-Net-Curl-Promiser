@@ -19,7 +19,8 @@ sub run {
     alarm 30;
 
     my $libcurl = Net::Curl::version();
-    diag "libcurl $libcurl";
+    my $libcurl_num = Net::Curl::LIBCURL_VERSION_NUM();
+    diag "libcurl $libcurl ($libcurl_num)";
 
     my @promises = map {
         my $path = $_;

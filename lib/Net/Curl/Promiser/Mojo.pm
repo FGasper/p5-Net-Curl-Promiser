@@ -173,7 +173,7 @@ sub _STOP_POLL {
         Mojo::IOLoop->remove($socket);
     }
     else {
-        warn "Mojo “extra” stop: [$fd]";
+        $self->_handle_extra_stop_poll($fd);
     }
 
     return;
