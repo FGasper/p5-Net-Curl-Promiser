@@ -30,7 +30,7 @@ sub new {
 
     my ($port) = Socket::unpack_sockaddr_in(getsockname $srv);
 
-    diag "SERVER PORT: [$port]";
+    diag "SERVER PORT: $port";
 
     my $pid = fork or do {
         my $ok = eval {
@@ -42,7 +42,7 @@ sub new {
         exit( $ok ? 0 : 1 );
     };
 
-    diag "SERVER PORT: $pid";
+    diag "SERVER PID: $pid";
 
     close $srv;
 
@@ -110,16 +110,16 @@ sub run {
 
         next if $got <= 0;
 
-        print STDERR "Server ($$) accepting connection …\n";
+        # print STDERR "Server ($$) accepting connection …\n";
         accept( my $cln, $socket );
-        print STDERR "Server ($$) received connection\n";
+        # print STDERR "Server ($$) received connection\n";
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf );
         }
 
-        print STDERR "Server ($$) received headers\n";
+        # print STDERR "Server ($$) received headers\n";
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
@@ -130,8 +130,9 @@ sub run {
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
 
-        print STDERR "Server ($$) wrote response for $uri_path\n";
+        # print STDERR "Server ($$) wrote response for $uri_path\n";
 
+        # Proper TCP shutdown.
         shutdown $cln, 0;
         1 while sysread $cln, my $throwaway, 65536;
     }

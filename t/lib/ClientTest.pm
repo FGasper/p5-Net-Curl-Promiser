@@ -26,7 +26,7 @@ sub run {
         my $easy = Net::Curl::Easy->new();
         $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$port/$path" );
 
-        $easy->setopt( CURLOPT_VERBOSE() => 1 );
+        # $easy->setopt( CURLOPT_VERBOSE() => 1 );
 
         $_ = q<> for @{$easy}{ qw(_head _body) };
         $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
@@ -35,13 +35,9 @@ sub run {
         # Even on the slowest machines this ought to be it.
         $easy->setopt( CURLOPT_TIMEOUT() => 30 );
 
-        print STDERR "adding $easy ($path) …\n";
-
         $promiser->add_handle($easy)->then(
             sub {
                 my ($easy) = shift;
-
-                diag "PROMISE CALLBACK ($$) for $path";
 
                 like($easy->{'_head'}, qr<\A$MyServer::HEAD_START>, "headers: $path" );
 
