@@ -1,5 +1,8 @@
 Revision history for Perl module Net::Curl::Promiser
 
+0.08
+- Remove redundant stat() checks on file descriptors.
+
 0.07 Thu 6 Feb 2020
 - Fix race conditions in AnyEvent and IO::Async.
 - Ignore extra stop-poll callbacks. This appears to have been an issue
