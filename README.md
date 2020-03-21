@@ -65,10 +65,19 @@ error that [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object�
 **IMPORTANT:** As with libcurl itself, HTTP-level failures
 (e.g., 4xx and 5xx responses) are **NOT** considered failures at this level.
 
+## $obj = _OBJ_->cancel\_handle( $EASY )
+
+Prematurely cancels $EASY. The associated promise will be abandoned
+in pending state, never to resolve nor reject.
+
+Returns _OBJ_.
+
 ## $obj = _OBJ_->fail\_handle( $EASY, $REASON )
 
-Prematurely fails $EASY. The given $REASON will be the associated
-Promise object’s rejection value.
+Like `cancel_handle()` but rejects $EASY’s associated promise
+with the given $REASON.
+
+Returns _OBJ_.
 
 ## $obj = _OBJ_->setopt( … )
 

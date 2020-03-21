@@ -1,6 +1,9 @@
 Revision history for Perl module Net::Curl::Promiser
 
-0.08
+0.09
+- Add cancel_handle() method.
+
+0.08 Wed 26 Feb 2020
 - Remove redundant stat() checks on file descriptors.
 - Clarify event loop requirement not to close FDs.
 

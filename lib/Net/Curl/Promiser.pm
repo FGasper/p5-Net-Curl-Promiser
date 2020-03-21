@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09_01';
 
 =encoding utf-8
 
@@ -180,8 +180,8 @@ sub cancel_handle {
 
 =head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
 
-Prematurely fails $EASY. The given $REASON will be the associated
-Promise object’s rejection value.
+Like C<cancel_handle()> but rejects $EASY’s associated promise
+with the given $REASON.
 
 Returns I<OBJ>.
 
