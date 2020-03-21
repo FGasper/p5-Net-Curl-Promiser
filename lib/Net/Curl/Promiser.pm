@@ -161,17 +161,36 @@ sub add_handle {
     return $promise;
 }
 
+=head2 $obj = I<OBJ>->cancel_handle( $EASY )
+
+Prematurely cancels $EASY. The associated promise will be abandoned
+in pending state, never to resolve nor reject.
+
+Returns I<OBJ>.
+
+=cut
+
+sub cancel_handle {
+    my ($self, $easy) = @_;
+
+    $self->{'to_fail'}{$easy} = [ $easy ];
+
+    return $self;
+}
+
 =head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
 
 Prematurely fails $EASY. The given $REASON will be the associated
 Promise object’s rejection value.
+
+Returns I<OBJ>.
 
 =cut
 
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
-    $self->{'to_fail'}{$easy} = [ $easy, $reason ];
+    $self->{'to_fail'}{$easy} = [ $easy, \$reason ];
 
     return $self;
 }
@@ -385,6 +404,11 @@ sub _socket_fn {
 sub _finish_handle {
     my ($self, $easy, $cb_idx, $payload) = @_;
 
+    # If $cb_idx == 0, then $payload is a promise resolution.
+    # If $cb_idx == 1, then $payload is either:
+    #   undef       - request canceled
+    #   scalar ref  - promise rejection
+
     my $err = $@;
 
     # Don’t depend on the caller to report failures.
@@ -393,11 +417,11 @@ sub _finish_handle {
         delete $self->{'to_fail'}{$easy};
 
         if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-            $cb_ar->[$cb_idx]->($payload);
+            $cb_ar->[$cb_idx]->($cb_idx ? $$payload : $payload) if !$cb_idx || $payload;
         }
         elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
             if ($cb_idx) {
-                $deferred->reject($payload);
+                $deferred->reject($$payload) if $payload;
             }
             else {
                 $deferred->resolve($payload);
@@ -424,8 +448,8 @@ sub _clear_failed {
     my ($self) = @_;
 
     for my $val_ar ( values %{ $self->{'to_fail'} } ) {
-        my ($easy, $reason) = @$val_ar;
-        $self->_finish_handle( $easy, 1, $reason );
+        my ($easy, $reason_sr) = @$val_ar;
+        $self->_finish_handle( $easy, 1, $reason_sr );
     }
 
     %{ $self->{'to_fail'} } = ();
@@ -446,7 +470,7 @@ sub _process_pending {
 
         $self->_finish_handle(
             $easy,
-            ($result == 0) ? ( 0 => $easy ) : ( 1 => $result ),
+            ($result == 0) ? ( 0 => $easy ) : ( 1 => \$result ),
         );
     }
 
