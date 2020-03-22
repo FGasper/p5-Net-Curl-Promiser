@@ -149,9 +149,12 @@ sub add_handle {
         die "bad promise engine: [$env_engine]";
     }
     else {
-        my $module = $self->PROMISE_CLASS() . '.pm';
-        $module =~ s<::></>g;
-        require $module;
+        $self->PROMISE_CLASS()->can('new') or do {
+            my $class = $self->PROMISE_CLASS();
+
+            local $@;
+            die if !eval "require $class";
+        };
 
         $promise = $self->PROMISE_CLASS()->new( sub {
             $self->{'callbacks'}{$easy} = \@_;
