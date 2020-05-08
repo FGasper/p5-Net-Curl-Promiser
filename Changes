@@ -1,8 +1,9 @@
 Revision history for Perl module Net::Curl::Promiser
 
-0.09
+0.09 Fri 8 May 2020
 - Add cancel_handle() method.
 - Lazy-load modules platform-neutrally (rather than assuming *nix).
+- Tweak docs wording.
 
 0.08 Wed 26 Feb 2020
 - Remove redundant stat() checks on file descriptors.

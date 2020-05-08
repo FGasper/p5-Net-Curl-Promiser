@@ -1,13 +1,13 @@
 # NAME
 
-Net::Curl::Promiser - A Promise interface for [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi)
+Net::Curl::Promiser - Asynchronous [libcurl](https://curl.haxx.se/libcurl/), the easy way!
 
 # DESCRIPTION
 
-This module wraps [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) to facilitate asynchronous
-requests with Promise objects. Net::Curl::Promiser interfaces with
-Net::Curl::Multi’s polling callbacks to simplify your task of coordinating
-multiple concurrent requests.
+[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) is powerful but tricky to use: polling, callbacks,
+timers, etc. This module does all of that for you and puts a Promise
+interface on top of it, so asynchronous I/O becomes almost as simple as
+synchronous I/O.
 
 [Net::Curl::Promiser](https://metacpan.org/pod/Net::Curl::Promiser) itself is a base class; you’ll need to provide
 an interface to whatever event loop you use. See ["SUBCLASS INTERFACE"](#subclass-interface)

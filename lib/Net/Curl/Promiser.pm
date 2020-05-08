@@ -3,20 +3,20 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.09_02';
+our $VERSION = '0.09';
 
 =encoding utf-8
 
 =head1 NAME
 
-Net::Curl::Promiser - A Promise interface for L<Net::Curl::Multi>
+Net::Curl::Promiser - Asynchronous L<libcurl|https://curl.haxx.se/libcurl/>, the easy way!
 
 =head1 DESCRIPTION
 
-This module wraps L<Net::Curl::Multi> to facilitate asynchronous
-requests with Promise objects. Net::Curl::Promiser interfaces with
-Net::Curl::Multi’s polling callbacks to simplify your task of coordinating
-multiple concurrent requests.
+L<Net::Curl::Multi> is powerful but tricky to use: polling, callbacks,
+timers, etc. This module does all of that for you and puts a Promise
+interface on top of it, so asynchronous I/O becomes almost as simple as
+synchronous I/O.
 
 L<Net::Curl::Promiser> itself is a base class; you’ll need to provide
 an interface to whatever event loop you use. See L</SUBCLASS INTERFACE>
