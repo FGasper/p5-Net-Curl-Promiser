@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.10_02';
+our $VERSION = '0.10';
 
 =encoding utf-8
 
@@ -63,7 +63,7 @@ This will override C<PROMISE_CLASS()>.
 
 use Net::Curl::Multi ();
 
-use constant _DEBUG => 1;
+use constant _DEBUG => 0;
 
 use constant _DEFAULT_TIMEOUT => 1000;
 
