@@ -30,7 +30,9 @@ SKIP: {
 
     my $loop = IO::Async::Loop->new();
 
-    diag "Using loop class " . ref($loop) . ' ' . $loop->VERSION();
+    my $version = eval { $loop->VERSION() } || '(unknown version)';
+
+    diag "Using loop class " . ref($loop) . " $version";
 
     my $promiser = Net::Curl::Promiser::IOAsync->new($loop);
 
