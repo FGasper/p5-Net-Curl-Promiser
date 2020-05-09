@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10_01';
 
 =encoding utf-8
 
@@ -382,15 +382,23 @@ sub _socket_fn {
     my ( $fd, $action, $self ) = @_[2, 3, 5];
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
+        print STDERR "FD $fd, IN\n" if _DEBUG;
+
         $self->_SET_POLL_IN($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
+        print STDERR "FD $fd, OUT\n" if _DEBUG;
+
         $self->_SET_POLL_OUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
+        print STDERR "FD $fd, INOUT\n" if _DEBUG;
+
         $self->_SET_POLL_INOUT($fd);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
+        print STDERR "FD $fd, STOP\n" if _DEBUG;
+
         $self->_STOP_POLL($fd);
 
         # In case we got a read and a remove right away.

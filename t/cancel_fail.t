@@ -40,7 +40,7 @@ my $promiser = Net::Curl::Promiser::Select->new();
 }
 
 for my $fail_ar ( [], [undef], [0], ['haha'] ) {
-    diag "fail: " . (explain $fail_ar)[0];
+    # diag "fail: " . (explain $fail_ar)[0];
 
     my @list;
 
