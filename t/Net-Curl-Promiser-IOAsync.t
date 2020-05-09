@@ -17,11 +17,6 @@ use ClientTest;
 
 plan tests => $ClientTest::TEST_COUNT;
 
-require Devel::VersionDump;
-END {
-    Devel::VersionDump::dump_versions();
-}
-
 SKIP: {
     eval { require IO::Async::Loop; 1 } or skip "IO::Async isn’t available: $@", $ClientTest::TEST_COUNT;
 
