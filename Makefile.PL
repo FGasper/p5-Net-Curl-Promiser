@@ -36,6 +36,7 @@ WriteMakefile1(
         'Test::Fatal'       => 0,
         'Test::Deep' => '1.120',    # has none()
         'Test::Class::Tiny' => 0,
+        'Devel::VersionDump' => 0,
     },
 );
 
