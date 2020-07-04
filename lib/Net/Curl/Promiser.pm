@@ -63,7 +63,7 @@ This will override C<PROMISE_CLASS()>.
 
 use Net::Curl::Multi ();
 
-use constant _DEBUG => 1;
+use constant _DEBUG => 0;
 
 use constant _DEFAULT_TIMEOUT => 1000;
 
@@ -176,7 +176,11 @@ Returns I<OBJ>.
 sub cancel_handle {
     my ($self, $easy) = @_;
 
-    $self->{'to_fail'}{$easy} = [ $easy ];
+    $self->_is_pending($easy) or die "Cannot cancel non-pending request!";
+
+    # We need to cancel immediately so that our N::C::Multi object
+    # removes the handle before the next event loop iteration.
+    $self->_finish_handle($easy, 1);
 
     return $self;
 }
@@ -193,9 +197,17 @@ Returns I<OBJ>.
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
+    $self->_is_pending($easy) or die "Cannot fail non-pending request!";
+
     $self->{'to_fail'}{$easy} = [ $easy, \$reason ];
 
     return $self;
+}
+
+sub _is_pending {
+    my ($self, $easy) = @_;
+
+    return $self->{'callbacks'}{$easy} || $self->{'deferred'}{$easy};
 }
 
 #----------------------------------------------------------------------
