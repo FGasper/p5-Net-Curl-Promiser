@@ -42,6 +42,7 @@ SKIP: {
 
     #----------------------------------------------------------------------
 
+diag "finishing";
     $server->finish();
 }
 
@@ -49,6 +50,7 @@ SKIP: {
 
 sub _test_cancel {
     my ($promiser, $port) = @_;
+diag "one";
 
     require Net::Curl::Easy;
     my $easy = Net::Curl::Easy->new();
@@ -82,4 +84,5 @@ sub _test_cancel {
     $cv->recv();
 
     is( $fate, undef, 'canceled promise remains pending' ) or diag explain $fate;
+diag "finish test_cancel";
 }

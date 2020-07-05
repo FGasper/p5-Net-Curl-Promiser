@@ -1,6 +1,6 @@
 language: perl
 os:
-  - linux
+#  - linux
 #  - osx    #doesn’t install the correct perl
 perl:
   - "5.30"
