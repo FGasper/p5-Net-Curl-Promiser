@@ -1,6 +1,6 @@
 Revision history for Perl module Net::Curl::Promiser
 
-0.12
+0.12 Sun 5 Jul 2020
 - Fix regression in IO::Async test.
 
 0.11 Sat 4 Jul 2020
