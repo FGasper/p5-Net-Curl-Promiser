@@ -15,10 +15,12 @@ use lib "$FindBin::Bin/lib";
 use MyServer;
 use ClientTest;
 
-plan tests => 1 + $ClientTest::TEST_COUNT;
+my $test_count = 1 + $ClientTest::TEST_COUNT;
+
+plan tests => $test_count;
 
 SKIP: {
-    eval { require AnyEvent::Loop; 1 } or skip "AnyEvent isn’t available: $@", $ClientTest::TEST_COUNT;
+    eval { require AnyEvent::Loop; 1 } or skip "AnyEvent isn’t available: $@", $test_count;
 
     diag "Using AnyEvent $AnyEvent::VERSION; backend: " . AnyEvent::detect();
 
@@ -42,7 +44,6 @@ SKIP: {
 
     #----------------------------------------------------------------------
 
-diag "finishing";
     $server->finish();
 }
 
@@ -50,7 +51,6 @@ diag "finishing";
 
 sub _test_cancel {
     my ($promiser, $port) = @_;
-diag "one";
 
     require Net::Curl::Easy;
     my $easy = Net::Curl::Easy->new();
@@ -84,5 +84,4 @@ diag "one";
     $cv->recv();
 
     is( $fate, undef, 'canceled promise remains pending' ) or diag explain $fate;
-diag "finish test_cancel";
 }
