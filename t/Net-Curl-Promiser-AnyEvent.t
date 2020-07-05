@@ -75,10 +75,11 @@ sub _test_cancel {
     push @watches, AnyEvent->timer(
         after => 1,
         cb => sub {
-            is( $fate, undef, 'canceled promise remains pending' );
             $cv->();
         },
     );
 
     $cv->recv();
+
+    is( $fate, undef, 'canceled promise remains pending' ) or diag explain $fate;
 }
