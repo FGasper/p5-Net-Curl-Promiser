@@ -10,11 +10,9 @@ interface on top of it, so asynchronous I/O becomes almost as simple as
 synchronous I/O.
 
 [Net::Curl::Promiser](https://metacpan.org/pod/Net::Curl::Promiser) itself is a base class; you’ll need to provide
-an interface to whatever event loop you use. See ["SUBCLASS INTERFACE"](#subclass-interface)
-below.
+a subclass that works with whatever event interface you use.
 
-This distribution provides the following as both demonstrations and
-portable implementations:
+This distribution provides the following usable subclasses:
 
 - [Net::Curl::Promiser::Mojo](https://metacpan.org/pod/Net::Curl::Promiser::Mojo) (for [Mojolicious](https://metacpan.org/pod/Mojolicious))
 - [Net::Curl::Promiser::AnyEvent](https://metacpan.org/pod/Net::Curl::Promiser::AnyEvent) (for [AnyEvent](https://metacpan.org/pod/AnyEvent))
@@ -22,8 +20,11 @@ portable implementations:
 - [Net::Curl::Promiser::Select](https://metacpan.org/pod/Net::Curl::Promiser::Select) (for manually-written
 `select()` loops)
 
-(See the distribution’s `/examples` directory for one based on Linux’s
-`epoll`.)
+If the event interface you want to use isn’t compatible with one of the
+above, you’ll need to create your own [Net::Curl::Promiser](https://metacpan.org/pod/Net::Curl::Promiser) subclass.
+This is undocumented but pretty simple; have a look at the ones above as
+well as another based on Linux’s [epoll(7)](http://man.he.net/man7/epoll) in the distribution’s
+`/examples`.
 
 # PROMISE IMPLEMENTATION
 
@@ -98,9 +99,7 @@ The following are needed only when you’re managing an event loop directly:
 
 ## $num = _OBJ_->get\_timeout()
 
-Returns the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s `timeout()`
-value, with a suitable (positive) default substituted if that value is
-less than 0.
+Returns the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s `timeout()` value.
 
 (NB: This value is in _milliseconds_.)
 
@@ -139,35 +138,6 @@ Since `process()` can also do the work of this function, a call to this
 function is just an optimization.
 
 This should only be called from event loop logic.
-
-# SUBCLASS INTERFACE
-
-**NOTE:** The distribution provides several ready-built end classes;
-unless you’re managing your own event loop, you don’t need to concern
-yourself with this.
-
-To use Net::Curl::Promiser, you’ll need a subclass that defines
-the following methods:
-
-- `_INIT(\@ARGS)`: Called at the end of `new()`. Receives a reference
-to the arguments given to `new()`.
-- `_SET_POLL_IN($FD)`: Tells the event loop that the given file
-descriptor is ready to read.
-- `_SET_POLL_OUT($FD)`: Like `_SET_POLL_IN()` but for a write event.
-- `_SET_POLL_INOUT($FD)`: Like `_SET_POLL_IN()` but registers
-a read and write event simultaneously.
-- `_STOP_POLL($FD)`: Tells the event loop that the given file
-descriptor is finished.
-- `_GET_FD_ACTION(\@ARGS)`: Receives a reference to the arguments
-given to `process()` and returns a reference to a hash of
-( $fd => $event\_mask ). $event\_mask is the sum of
-`Net::Curl::Multi::CURL_CSELECT_IN()` and/or
-`Net::Curl::Multi::CURL_CSELECT_OUT()`, depending on which events
-are available.
-
-**IMPORTANT:** Your event loop **MUST** **NOT** close file descriptors. This means
-that, if you create Perl filehandles from the file descriptors, you need to
-prevent Perl from closing the underlying file descriptors.
 
 # EXAMPLES
 
