@@ -70,7 +70,7 @@ sub new {
     $self->{'_epoll'} = shift();
     $self->{'_fds'} = {};
 
-    return;
+    return $self;
 }
 
 sub _GET_FD_ACTION {

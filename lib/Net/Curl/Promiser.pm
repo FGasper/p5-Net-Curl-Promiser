@@ -111,15 +111,17 @@ sub new {
     my $backend = $self->_INIT(\@args);
     $self->{'backend'} = $backend;
 
-    $multi->setopt(
-        Net::Curl::Multi::CURLMOPT_TIMERDATA(),
-        $backend,
-    );
+    if (my $timer_cr = $backend->can('_CB_TIMER')) {
+        $multi->setopt(
+            Net::Curl::Multi::CURLMOPT_TIMERDATA(),
+            $backend,
+        );
 
-    $multi->setopt(
-        Net::Curl::Multi::CURLMOPT_TIMERFUNCTION(),
-        $backend->can('_CB_TIMER'),
-    );
+        $multi->setopt(
+            Net::Curl::Multi::CURLMOPT_TIMERFUNCTION(),
+            $timer_cr,
+        );
+    }
 
     $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETDATA,
