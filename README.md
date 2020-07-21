@@ -26,6 +26,12 @@ This is undocumented but pretty simple; have a look at the ones above as
 well as another based on Linux’s [epoll(7)](http://man.he.net/man7/epoll) in the distribution’s
 `/examples`.
 
+# MEMORY LEAK DETECTION
+
+This module will, by default, `warn()` if its objects are `DESTROY()`ed
+during Perl’s global destruction phase. To suppress this behavior, set
+`$Net::Curl::Promiser::IGNORE_MEMORY_LEAKS` to a truthy value.
+
 # PROMISE IMPLEMENTATION
 
 This class’s default Promise implementation is [Promise::ES6](https://metacpan.org/pod/Promise::ES6).

@@ -42,6 +42,12 @@ This is undocumented but pretty simple; have a look at the ones above as
 well as another based on Linux’s L<epoll(7)> in the distribution’s
 F</examples>.
 
+=head1 MEMORY LEAK DETECTION
+
+This module will, by default, C<warn()> if its objects are C<DESTROY()>ed
+during Perl’s global destruction phase. To suppress this behavior, set
+C<$Net::Curl::Promiser::IGNORE_MEMORY_LEAKS> to a truthy value.
+
 =head1 PROMISE IMPLEMENTATION
 
 This class’s default Promise implementation is L<Promise::ES6>.
