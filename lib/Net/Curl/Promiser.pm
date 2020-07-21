@@ -61,13 +61,15 @@ This will override C<PROMISE_CLASS()>.
 
 #----------------------------------------------------------------------
 
+use parent 'Net::Curl::Promiser::LeakDetector';
+
 use Net::Curl::Multi ();
 
 use constant _DEBUG => 0;
 
 use constant _DEFAULT_TIMEOUT => 1000;
 
-use constant PROMISE_CLASS => 'Promise::ES6';
+our $IGNORE_MEMORY_LEAKS;
 
 #----------------------------------------------------------------------
 
@@ -91,6 +93,7 @@ sub new {
     my %props = (
         callbacks => {},
         to_fail => {},
+        ignore_leaks => $IGNORE_MEMORY_LEAKS,
     );
 
     my $self = bless \%props, $class;
@@ -98,17 +101,28 @@ sub new {
     my $multi = Net::Curl::Multi->new();
     $self->{'multi'} = $multi;
 
+    my $backend = $self->_INIT(\@args);
+    $self->{'backend'} = $backend;
+
+    $multi->setopt(
+        Net::Curl::Multi::CURLMOPT_TIMERDATA(),
+        $backend,
+    );
+
+    $multi->setopt(
+        Net::Curl::Multi::CURLMOPT_TIMERFUNCTION(),
+        $backend->can('_CB_TIMER'),
+    );
+
     $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETDATA,
-        $self,
+        $backend,
     );
 
     $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETFUNCTION,
         \&_socket_fn,
     );
-
-    $self->_INIT(\@args);
 
     return $self;
 }
@@ -132,36 +146,7 @@ B<IMPORTANT:> As with libcurl itself, HTTP-level failures
 sub add_handle {
     my ($self, $easy) = @_;
 
-    $self->{'multi'}->add_handle($easy);
-
-    my $env_engine = $ENV{'NET_CURL_PROMISER_PROMISE_ENGINE'} || q<>;
-
-    my $promise;
-
-    if ($env_engine eq 'Promise::XS') {
-        require Promise::XS;
-
-        my $deferred = Promise::XS::deferred();
-        $self->{'deferred'}{$easy} = $deferred;
-        $promise = $deferred->promise();
-    }
-    elsif ($env_engine) {
-        die "bad promise engine: [$env_engine]";
-    }
-    else {
-        $self->PROMISE_CLASS()->can('new') or do {
-            my $class = $self->PROMISE_CLASS();
-
-            local $@;
-            die if !eval "require $class";
-        };
-
-        $promise = $self->PROMISE_CLASS()->new( sub {
-            $self->{'callbacks'}{$easy} = \@_;
-        } );
-    }
-
-    return $promise;
+    return $self->{'backend'}->add_handle($easy, $self->{'multi'});
 }
 
 =head2 $obj = I<OBJ>->cancel_handle( $EASY )
@@ -176,13 +161,7 @@ Returns I<OBJ>.
 sub cancel_handle {
     my ($self, $easy) = @_;
 
-    $self->_is_pending($easy) or die "Cannot cancel non-pending request!";
-
-    # We need to cancel immediately so that our N::C::Multi object
-    # removes the handle before the next event loop iteration.
-    $self->_finish_handle($easy, 1);
-
-    return $self;
+    return $self->{'backend'}->cancel_handle($easy, $self->{'multi'});
 }
 
 =head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
@@ -197,17 +176,7 @@ Returns I<OBJ>.
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
-    $self->_is_pending($easy) or die "Cannot fail non-pending request!";
-
-    $self->{'to_fail'}{$easy} = [ $easy, \$reason ];
-
-    return $self;
-}
-
-sub _is_pending {
-    my ($self, $easy) = @_;
-
-    return $self->{'callbacks'}{$easy} || $self->{'deferred'}{$easy};
+    return $self->{'backend'}->fail_handle($easy, $reason);
 }
 
 #----------------------------------------------------------------------
@@ -302,18 +271,7 @@ Returns I<OBJ>.
 sub process {
     my ($self, @fd_action_args) = @_;
 
-    my $fd_action_hr = $self->_GET_FD_ACTION(\@fd_action_args);
-
-    if (%$fd_action_hr) {
-        for my $fd (keys %$fd_action_hr) {
-            $self->{'multi'}->socket_action( $fd, $fd_action_hr->{$fd} );
-        }
-    }
-    else {
-        $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
-    }
-
-    $self->_process_pending();
+    $self->{'backend'}->process( $self->{'multi'}, \@fd_action_args );
 
     return $self;
 }
@@ -339,11 +297,7 @@ This should only be called from event loop logic.
 sub time_out {
     my ($self) = @_;
 
-    my $is_active = $self->{'multi'}->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
-
-    $self->_process_pending();
-
-    return $is_active;
+    return $self->{'backend'}->time_out( $self->{'multi'} );
 }
 
 #----------------------------------------------------------------------
@@ -390,114 +344,53 @@ prevent Perl from closing the underlying file descriptors.
 
 #----------------------------------------------------------------------
 
+#sub DESTROY {
+#    my ($self) = @_;
+#
+#    $self->SUPER::DESTROY();
+#
+#    my $multi = $self->{'multi'};
+#
+#    $multi->setopt( Net::Curl::Multi::CURLMOPT_TIMERDATA(), undef );
+#    $multi->setopt( Net::Curl::Multi::CURLMOPT_SOCKETDATA(), undef );
+#
+#    return;
+#}
+
+#----------------------------------------------------------------------
+
 sub _socket_fn {
-    my ( $fd, $action, $self ) = @_[2, 3, 5];
+    my ( $multi, $fd, $action, $backend ) = @_[0, 2, 3, 5];
 
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
         print STDERR "FD $fd, IN\n" if _DEBUG;
 
-        $self->_SET_POLL_IN($fd);
+        $backend->SET_POLL_IN($fd, $multi);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_OUT) {
         print STDERR "FD $fd, OUT\n" if _DEBUG;
 
-        $self->_SET_POLL_OUT($fd);
+        $backend->SET_POLL_OUT($fd, $multi);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_INOUT) {
         print STDERR "FD $fd, INOUT\n" if _DEBUG;
 
-        $self->_SET_POLL_INOUT($fd);
+        $backend->SET_POLL_INOUT($fd, $multi);
     }
     elsif ($action == Net::Curl::Multi::CURL_POLL_REMOVE) {
         print STDERR "FD $fd, STOP\n" if _DEBUG;
 
-        $self->_STOP_POLL($fd);
+        $backend->STOP_POLL($fd, $multi);
 
         # In case we got a read and a remove right away.
         # This *may* not be needed but doesn’t seem to hurt.
-        $self->_process_pending();
+        $backend->process_pending($multi);
     }
     else {
-        warn "$self: Unrecognized action $action on FD $fd\n";
+        warn( __PACKAGE__ . ": Unrecognized action $action on FD $fd\n" );
     }
 
     return 0;
-}
-
-sub _finish_handle {
-    my ($self, $easy, $cb_idx, $payload) = @_;
-
-    # If $cb_idx == 0, then $payload is a promise resolution.
-    # If $cb_idx == 1, then $payload is either:
-    #   undef       - request canceled
-    #   scalar ref  - promise rejection
-
-    my $err = $@;
-
-    # Don’t depend on the caller to report failures.
-    # (AnyEvent, for example, blackholes them.)
-    warn if !eval {
-        delete $self->{'to_fail'}{$easy};
-
-        if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
-            $cb_ar->[$cb_idx]->($cb_idx ? $$payload : $payload) if !$cb_idx || $payload;
-        }
-        elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
-            if ($cb_idx) {
-                $deferred->reject($$payload) if $payload;
-            }
-            else {
-                $deferred->resolve($payload);
-            }
-        }
-        else {
-
-            # This shouldn’t happen, but just in case:
-            require Data::Dumper;
-            print STDERR Data::Dumper::Dumper( ORPHAN => $easy => $payload );
-        }
-
-        $self->{'multi'}->remove_handle( $easy );
-
-        1;
-    };
-
-    $@ = $err;
-
-    return;
-}
-
-sub _clear_failed {
-    my ($self) = @_;
-
-    for my $val_ar ( values %{ $self->{'to_fail'} } ) {
-        my ($easy, $reason_sr) = @$val_ar;
-        $self->_finish_handle( $easy, 1, $reason_sr );
-    }
-
-    %{ $self->{'to_fail'} } = ();
-
-    return;
-}
-
-sub _process_pending {
-    my ($self) = @_;
-
-    $self->_clear_failed();
-
-    while ( my ( $msg, $easy, $result ) = $self->{'multi'}->info_read() ) {
-
-        if ($msg != Net::Curl::Multi::CURLMSG_DONE()) {
-            die "Unrecognized info_read() message: [$msg]";
-        }
-
-        $self->_finish_handle(
-            $easy,
-            ($result == 0) ? ( 0 => $easy ) : ( 1 => \$result ),
-        );
-    }
-
-    return;
 }
 
 #----------------------------------------------------------------------

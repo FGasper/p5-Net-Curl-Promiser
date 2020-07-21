@@ -72,7 +72,9 @@ sub _test_cancel {
 
     my $cv = AnyEvent->condvar();
 
+diag "before canceled";
     $promiser->cancel_handle($easy);
+diag "canceled";
 
     push @watches, AnyEvent->timer(
         after => 1,

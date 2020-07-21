@@ -1,5 +1,9 @@
 Revision history for Perl module Net::Curl::Promiser
 
+0.13
+- BUG FIX: Allow reuse of $easy within a promise callback.
+- Refactor to avoid memory leaks; add detection logic (on by default).
+
 0.12 Sun 5 Jul 2020
 - Fix regression in IO::Async test.
 
