@@ -3,11 +3,13 @@
 use strict;
 use warnings;
 
-use Net::Curl::Easy qw(:constants);
-
 use FindBin;
 
 use lib "$FindBin::Bin/../lib";
+
+use blib "$FindBin::Bin/../../perl-Net-Curl";
+
+use Net::Curl::Easy qw(:constants);
 
 use Net::Curl::Promiser::Select;
 
@@ -19,6 +21,11 @@ my @urls = (
 use constant _SIZE_LIMIT => 100;
 
 #----------------------------------------------------------------------
+
+print "$_$/" for @INC;
+print $INC{'Net/Curl.pm'} . $/;
+
+$| = 1;
 
 my $promiser = Net::Curl::Promiser::Select->new();
 
@@ -34,6 +41,7 @@ for my $url (@urls) {
 
         if (($url =~ m<perl>) && length($buf) + length($data) > _SIZE_LIMIT()) {
             $promiser->fail_handle($easy, 'Too big!');
+print "pause: " . Net::Curl::Easy::CURL_WRITEFUNC_PAUSE() . $/;
             return Net::Curl::Easy::CURL_WRITEFUNC_PAUSE();
         }
         else {
@@ -69,5 +77,9 @@ while ($promiser->handles()) {
         }
     }
 
+print "before process\n";
     $promiser->process($$rout, $$wout);
+print "after process\n";
 }
+
+print "end\n";

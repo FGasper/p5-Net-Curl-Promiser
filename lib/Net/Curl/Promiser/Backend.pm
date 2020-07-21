@@ -22,9 +22,7 @@ sub cancel_handle {
 
     # We need to cancel immediately so that our N::C::Multi object
     # removes the handle before the next event loop iteration.
-print "=== in cancel_handle\n";
     $self->_finish_handle($easy, $multi, 1);
-print "=== end cancel_handle\n";
 
     return $self;
 }
@@ -93,13 +91,16 @@ sub process {
         $multi->socket_action( Net::Curl::Multi::CURL_SOCKET_TIMEOUT() );
     }
 
+    print "--- before backend process()\n";
     $self->process_pending( $multi );
+    print "--- after backend process()\n";
 
     return;
 }
 
 sub process_pending {
     my ($self, $multi) = @_;
+print "--- start of process_pending\n";
 
     $self->_clear_failed($multi);
 
@@ -115,6 +116,7 @@ sub process_pending {
             ($result == 0) ? ( 0 => $easy ) : ( 1 => \$result ),
         );
     }
+print "--- end of backend process_pending\n";
 
     return;
 }
@@ -158,10 +160,14 @@ sub _finish_handle {
 
         # This has to precede the callbacks so that $easy can be added back
         # into $self->{'multi'} within the callback.
+print "before remove_handle\n";
         $multi->remove_handle($easy);
+print "after remove_handle\n";
 
         if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {
+print "before callback\n";
             $cb_ar->[$cb_idx]->($cb_idx ? $$payload : $payload) if !$cb_idx || $payload;
+print "after callback\n";
         }
         elsif ( my $deferred = delete $self->{'deferred'}{$easy} ) {
             if ($cb_idx) {
@@ -182,6 +188,7 @@ sub _finish_handle {
     };
 
     $@ = $err;
+print "end _finish_handle\n";
 
     return;
 }
@@ -195,8 +202,10 @@ sub _clear_failed {
         my ($easy, $reason_sr) = @$val_ar;
         $self->_finish_handle( $easy, $multi, 1, $reason_sr );
     }
+print "--- in _clear_failed\n";
 
     %{ $self->{'to_fail'} } = ();
+print "--- end of _clear_failed\n";
 
     return;
 }

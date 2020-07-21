@@ -19,11 +19,9 @@ interface on top of it, so asynchronous I/O becomes almost as simple as
 synchronous I/O.
 
 L<Net::Curl::Promiser> itself is a base class; you’ll need to provide
-an interface to whatever event loop you use. See L</SUBCLASS INTERFACE>
-below.
+a subclass that works with whatever event interface you use.
 
-This distribution provides the following as both demonstrations and
-portable implementations:
+This distribution provides the following usable subclasses:
 
 =over
 
@@ -38,8 +36,11 @@ C<select()> loops)
 
 =back
 
-(See the distribution’s F</examples> directory for one based on Linux’s
-C<epoll>.)
+If the event interface you want to use isn’t compatible with one of the
+above, you’ll need to create your own L<Net::Curl::Promiser> subclass.
+This is undocumented but pretty simple; have a look at the ones above as
+well as another based on Linux’s L<epoll(7)> in the distribution’s
+F</examples>.
 
 =head1 PROMISE IMPLEMENTATION
 
@@ -226,9 +227,7 @@ The following are needed only when you’re managing an event loop directly:
 
 =head2 $num = I<OBJ>->get_timeout()
 
-Returns the underlying L<Net::Curl::Multi> object’s C<timeout()>
-value, with a suitable (positive) default substituted if that value is
-less than 0.
+Returns the underlying L<Net::Curl::Multi> object’s C<timeout()> value.
 
 (NB: This value is in I<milliseconds>.)
 
@@ -243,9 +242,7 @@ This should only be called (if it’s called at all) from event loop logic.
 sub get_timeout {
     my ($self) = @_;
 
-    my $timeout = $self->{'multi'}->timeout();
-
-    return( $timeout < 0 ? _DEFAULT_TIMEOUT() : $timeout );
+    return $self->{'multi'}->timeout();
 }
 
 #----------------------------------------------------------------------
@@ -272,6 +269,7 @@ sub process {
     my ($self, @fd_action_args) = @_;
 
     $self->{'backend'}->process( $self->{'multi'}, \@fd_action_args );
+print "---- end of promiser->process\n";
 
     return $self;
 }
@@ -299,63 +297,6 @@ sub time_out {
 
     return $self->{'backend'}->time_out( $self->{'multi'} );
 }
-
-#----------------------------------------------------------------------
-
-=head1 SUBCLASS INTERFACE
-
-B<NOTE:> The distribution provides several ready-built end classes;
-unless you’re managing your own event loop, you don’t need to concern
-yourself with this.
-
-To use Net::Curl::Promiser, you’ll need a subclass that defines
-the following methods:
-
-=over
-
-=item * C<_INIT(\@ARGS)>: Called at the end of C<new()>. Receives a reference
-to the arguments given to C<new()>.
-
-=item * C<_SET_POLL_IN($FD)>: Tells the event loop that the given file
-descriptor is ready to read.
-
-=item * C<_SET_POLL_OUT($FD)>: Like C<_SET_POLL_IN()> but for a write event.
-
-=item * C<_SET_POLL_INOUT($FD)>: Like C<_SET_POLL_IN()> but registers
-a read and write event simultaneously.
-
-=item * C<_STOP_POLL($FD)>: Tells the event loop that the given file
-descriptor is finished.
-
-=item * C<_GET_FD_ACTION(\@ARGS)>: Receives a reference to the arguments
-given to C<process()> and returns a reference to a hash of
-( $fd => $event_mask ). $event_mask is the sum of
-C<Net::Curl::Multi::CURL_CSELECT_IN()> and/or
-C<Net::Curl::Multi::CURL_CSELECT_OUT()>, depending on which events
-are available.
-
-=back
-
-B<IMPORTANT:> Your event loop B<MUST> B<NOT> close file descriptors. This means
-that, if you create Perl filehandles from the file descriptors, you need to
-prevent Perl from closing the underlying file descriptors.
-
-=cut
-
-#----------------------------------------------------------------------
-
-#sub DESTROY {
-#    my ($self) = @_;
-#
-#    $self->SUPER::DESTROY();
-#
-#    my $multi = $self->{'multi'};
-#
-#    $multi->setopt( Net::Curl::Multi::CURLMOPT_TIMERDATA(), undef );
-#    $multi->setopt( Net::Curl::Multi::CURLMOPT_SOCKETDATA(), undef );
-#
-#    return;
-#}
 
 #----------------------------------------------------------------------
 
