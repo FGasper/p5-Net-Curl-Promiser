@@ -7,8 +7,6 @@ use FindBin;
 
 use lib "$FindBin::Bin/../lib";
 
-use blib "$FindBin::Bin/../../perl-Net-Curl";
-
 use Net::Curl::Easy qw(:constants);
 
 use Net::Curl::Promiser::Select;
@@ -22,11 +20,6 @@ use constant _SIZE_LIMIT => 100;
 
 #----------------------------------------------------------------------
 
-print "$_$/" for @INC;
-print $INC{'Net/Curl.pm'} . $/;
-
-$| = 1;
-
 my $promiser = Net::Curl::Promiser::Select->new();
 
 for my $url (@urls) {
@@ -36,12 +29,12 @@ for my $url (@urls) {
 
     my $buf = q<>;
 
+    $handle->setopt( CURLOPT_WRITEDATA() => $promiser );
     $handle->setopt( CURLOPT_WRITEFUNCTION() => sub {
-        my ($easy, $data) = @_;
+        my ($easy, $data, $promiser) = @_;
 
         if (($url =~ m<perl>) && length($buf) + length($data) > _SIZE_LIMIT()) {
             $promiser->fail_handle($easy, 'Too big!');
-print "pause: " . Net::Curl::Easy::CURL_WRITEFUNC_PAUSE() . $/;
             return Net::Curl::Easy::CURL_WRITEFUNC_PAUSE();
         }
         else {
@@ -53,7 +46,9 @@ print "pause: " . Net::Curl::Easy::CURL_WRITEFUNC_PAUSE() . $/;
     $promiser->add_handle($handle)->then(
         sub { print "$url completed.$/" },
         sub { warn "$url failed: " . shift },
-    );
+    )->finally( sub {
+        $handle->setopt( CURLOPT_WRITEDATA() => undef );
+    } );
 }
 
 #----------------------------------------------------------------------

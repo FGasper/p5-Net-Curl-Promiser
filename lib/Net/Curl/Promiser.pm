@@ -269,7 +269,6 @@ sub process {
     my ($self, @fd_action_args) = @_;
 
     $self->{'backend'}->process( $self->{'multi'}, \@fd_action_args );
-print "---- end of promiser->process\n";
 
     return $self;
 }
@@ -303,6 +302,9 @@ sub time_out {
 sub _socket_fn {
     my ( $multi, $fd, $action, $backend ) = @_[0, 2, 3, 5];
 
+    # IMPORTANT: Removing handles within this function is likely to
+    # corrupt libcurl.
+
     if ($action == Net::Curl::Multi::CURL_POLL_IN) {
         print STDERR "FD $fd, IN\n" if _DEBUG;
 
@@ -322,10 +324,6 @@ sub _socket_fn {
         print STDERR "FD $fd, STOP\n" if _DEBUG;
 
         $backend->STOP_POLL($fd, $multi);
-
-        # In case we got a read and a remove right away.
-        # This *may* not be needed but doesn’t seem to hurt.
-        $backend->process_pending($multi);
     }
     else {
         warn( __PACKAGE__ . ": Unrecognized action $action on FD $fd\n" );
