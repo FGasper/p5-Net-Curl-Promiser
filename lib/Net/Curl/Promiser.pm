@@ -185,6 +185,11 @@ Returns I<OBJ>.
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
+    if (!defined $reason || !length $reason) {
+        require Carp;
+        Carp::carp("fail_handle(): no reason given");
+    }
+
     return $self->{'backend'}->fail_handle($easy, $reason);
 }
 

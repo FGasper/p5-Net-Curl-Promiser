@@ -25,11 +25,6 @@ sub cancel_handle {
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
-    if (!defined $reason || !length $reason) {
-        require Carp;
-        Carp::carp("fail_handle(): no reason given");
-    }
-
     return $self->_fail_or_cancel($easy, \$reason);
 }
 
