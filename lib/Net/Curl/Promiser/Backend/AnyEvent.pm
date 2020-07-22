@@ -70,7 +70,6 @@ sub SET_POLL_INOUT {
 sub STOP_POLL {
     my ($self, $fd) = @_;
 
-    #delete $self->{'_watches'}{$fd} or $self->_handle_extra_stop_poll($fd);
     delete $self->{'_watches'}{$fd};
 
     return;

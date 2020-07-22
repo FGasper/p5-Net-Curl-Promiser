@@ -28,7 +28,6 @@ sub new {
 
 sub SET_TIMER {
     my ($self, $multi, $timeout_ms) = @_;
-print "=== set timer $timeout_ms\n";
 
     $self->{onetimer} = Mojo::IOLoop->timer(
         $timeout_ms / 1000,
@@ -100,9 +99,6 @@ sub STOP_POLL {
 
     if (my $socket = delete $self->{'_watched_sockets'}{$fd}) {
         Mojo::IOLoop->remove($socket);
-    }
-    else {
-        # $self->_handle_extra_stop_poll($fd);
     }
 
     return;

@@ -31,12 +31,6 @@ use Net::Curl::Promiser::Backend::Select;
 
 #----------------------------------------------------------------------
 
-=head1 C<process( $READ_MASK, $WRITE_MASK )>
-
-Instances of this class should pass the read and write bitmasks
-to the C<process()> method that otherwise would be passed to Perl’s
-C<select()> built-in.
-
 =head1 METHODS
 
 The following are added in addition to the base class methods:
@@ -69,6 +63,57 @@ sub get_fds {
 
 #----------------------------------------------------------------------
 
+=head1 C<process( $READ_MASK, $WRITE_MASK )>
+
+Tell the underlying L<Net::Curl::Multi> object which socket events have
+happened. $READ_MASK and $WRITE_MASK are as “left” by Perl’s
+C<select()> built-in.
+
+If, in fact, no events have happened, then this calls
+C<socket_action(CURL_SOCKET_TIMEOUT)> on the
+L<Net::Curl::Multi> object (similar to C<time_out()>).
+
+Finally, this reaps whatever pending HTTP responses may be ready and
+resolves or rejects the corresponding Promise objects.
+
+Returns I<OBJ>.
+
+=cut
+
+sub process {
+    my ($self, @fd_action_args) = @_;
+
+    $self->{'backend'}->process( $self->{'multi'}, \@fd_action_args );
+
+    return $self;
+}
+
+#----------------------------------------------------------------------
+
+=head2 $is_active = I<OBJ>->time_out();
+
+Tell the underlying L<Net::Curl::Multi> object that a timeout happened,
+and reap whatever pending HTTP responses may be ready.
+
+Calls C<socket_action(CURL_SOCKET_TIMEOUT)> on the
+underlying L<Net::Curl::Multi> object. The return is the same as
+that operation returns.
+
+Since C<process()> can also do the work of this function, a call to this
+function is just an optimization.
+
+This should only be called from event loop logic.
+
+=cut
+
+sub time_out {
+    my ($self) = @_;
+
+    return $self->{'backend'}->time_out( $self->{'multi'} );
+}
+
+#----------------------------------------------------------------------
+
 =head2 $num = I<OBJ>->get_timeout()
 
 Like libcurl’s L<curl_multi_timeout(3)>, but sometimes returns different
@@ -93,9 +138,6 @@ sub get_timeout {
 sub _INIT {
     return Net::Curl::Promiser::Backend::Select->new();
 }
-
-
-
 
 
 1;

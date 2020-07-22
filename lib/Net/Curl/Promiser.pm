@@ -111,18 +111,6 @@ sub new {
     my $backend = $self->_INIT(\@args);
     $self->{'backend'} = $backend;
 
-    if (my $timer_cr = $backend->can('_CB_TIMER')) {
-        $multi->setopt(
-            Net::Curl::Multi::CURLMOPT_TIMERDATA(),
-            $backend,
-        );
-
-        $multi->setopt(
-            Net::Curl::Multi::CURLMOPT_TIMERFUNCTION(),
-            $timer_cr,
-        );
-    }
-
     $multi->setopt(
         Net::Curl::Multi::CURLMOPT_SOCKETDATA,
         $backend,
@@ -230,62 +218,6 @@ method of the same name.
 
 sub handles {
    return shift()->{'multi'}->handles();
-}
-
-#----------------------------------------------------------------------
-
-=head1 EVENT LOOP METHODS
-
-The following are needed only when you’re managing an event loop directly:
-
-=head2 $obj = I<OBJ>->process( @ARGS )
-
-Tell the underlying L<Net::Curl::Multi> object which socket events have
-happened.
-
-If, in fact, no events have happened, then this calls
-C<socket_action(CURL_SOCKET_TIMEOUT)> on the
-L<Net::Curl::Multi> object (similar to C<time_out()>).
-
-Finally, this reaps whatever pending HTTP responses may be ready and
-resolves or rejects the corresponding Promise objects.
-
-This should only be called from event loop logic.
-
-Returns I<OBJ>.
-
-=cut
-
-sub process {
-    my ($self, @fd_action_args) = @_;
-
-    $self->{'backend'}->process( $self->{'multi'}, \@fd_action_args );
-
-    return $self;
-}
-
-#----------------------------------------------------------------------
-
-=head2 $is_active = I<OBJ>->time_out();
-
-Tell the underlying L<Net::Curl::Multi> object that a timeout happened,
-and reap whatever pending HTTP responses may be ready.
-
-Calls C<socket_action(CURL_SOCKET_TIMEOUT)> on the
-underlying L<Net::Curl::Multi> object. The return is the same as
-that operation returns.
-
-Since C<process()> can also do the work of this function, a call to this
-function is just an optimization.
-
-This should only be called from event loop logic.
-
-=cut
-
-sub time_out {
-    my ($self) = @_;
-
-    return $self->{'backend'}->time_out( $self->{'multi'} );
 }
 
 #----------------------------------------------------------------------

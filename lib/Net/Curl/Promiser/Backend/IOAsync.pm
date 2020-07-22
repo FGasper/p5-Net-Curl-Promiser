@@ -106,9 +106,6 @@ sub STOP_POLL {
     if ( my $fh = delete $self->{'_handle'}{$fd} ) {
         $self->{'_loop'}->remove($fh);
     }
-    else {
-        #$self->_handle_extra_stop_poll($fd);
-    }
 
     return;
 }

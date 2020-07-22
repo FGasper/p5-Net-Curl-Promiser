@@ -40,39 +40,26 @@ use Net::Curl ();
 
 #----------------------------------------------------------------------
 
-*_process_in_loop = __PACKAGE__->can('SUPER::process');
-*_time_out_in_loop = __PACKAGE__->can('SUPER::time_out');
+sub new {
+    my $self = shift()->SUPER::new(@_);
 
-# 7.66 is observed not to have this problem;
-# assumedly newer libcurls won’t regress.
-use constant _MINIMUM_LIBCURL_TO_WARN_ABOUT_EXTRA_STOP_POLL => 7.52;
+    my ($backend, $multi) = @{$self}{'backend', 'multi'};
 
-sub process { die 'Unneeded method: ' . (caller 0)[3] };
-sub get_timeout { die 'Unneeded method: ' . (caller 0)[3] };
-sub time_out { die 'Unneeded method: ' . (caller 0)[3] };
+    $multi->setopt(
+        Net::Curl::Multi::CURLMOPT_TIMERDATA(),
+        $backend,
+    );
+
+    $multi->setopt(
+        Net::Curl::Multi::CURLMOPT_TIMERFUNCTION(),
+        $backend->can('_CB_TIMER'),
+    );
+
+    return $self;
+}
 
 sub _GET_FD_ACTION {
     return +{ @{ $_[1] } };
-}
-
-sub _handle_extra_stop_poll {
-    my ($self, $fd) = @_;
-
-    if (Net::Curl::Promiser::_DEBUG) {
-        my $version = Net::Curl::LIBCURL_VERSION();
-
-        if ( $version =~ m<\A([0-9]+\.[0-9]+)> ) {
-            if ($1 >= _MINIMUM_LIBCURL_TO_WARN_ABOUT_EXTRA_STOP_POLL) {
-                my $ref = ref $self;
-                warn "$ref: Unexpected “extra” FD stop (libcurl $version): [$fd]";
-            }
-        }
-        else {
-            warn "Unparseable LIBCURL_VERSION: [$version]";
-        }
-    }
-
-    return;
 }
 
 1;
