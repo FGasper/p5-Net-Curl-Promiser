@@ -118,6 +118,8 @@ sub _time_out_readable {
 sub run {
     my ($socket, $end_fh) = @_;
 
+    $SIG{'PIPE'} = 'DEFAULT';
+
   ACCEPT:
     while (!-s $end_fh) {
         next if !_time_out_readable($socket, 0.1);
