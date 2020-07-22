@@ -118,7 +118,7 @@ sub _time_out_readable {
 sub run {
     my ($socket, $end_fh) = @_;
 
-    $SIG{'PIPE'} = 'DEFAULT';
+    $SIG{'PIPE'} = 'IGNORE';
 
   ACCEPT:
     while (!-s $end_fh) {
@@ -143,15 +143,17 @@ sub run {
 
         _DIAG("URI: $uri_path");
 
-        syswrite $cln, $MyServer::HEAD_START;
-        syswrite $cln, "X-URI: $uri_path$MyServer::CRLF";
-        syswrite $cln, $MyServer::CRLF;
+        warn "connection failed: $@" if !eval {
+            syswrite $cln, $MyServer::HEAD_START;
+            syswrite $cln, "X-URI: $uri_path$MyServer::CRLF";
+            syswrite $cln, $MyServer::CRLF;
 
-        syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
+            syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
 
-        # Proper TCP shutdown.
-        shutdown $cln, 0;
-        1 while sysread $cln, my $throwaway, 65536;
+            # Proper TCP shutdown.
+            shutdown $cln, 0;
+            1 while sysread $cln, my $throwaway, 65536;
+        };
     }
 
     diag "Server ($$) received request to shut down";
