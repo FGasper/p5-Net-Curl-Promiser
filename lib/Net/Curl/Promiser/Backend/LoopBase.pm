@@ -22,6 +22,10 @@ sub time_out {
 
     my $is_active = $self->SUPER::time_out($multi);
 
+    # Sometimes (maybe depending on the curl version?) $is_active
+    # is 0 despite the presence of in-progress requests.
+    $is_active ||= %{ $self->{'callbacks'} } || %{ $self->{'deferred'} };
+
     $self->CLEAR_TIMER() if !$is_active;
 
     return $is_active;
