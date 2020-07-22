@@ -143,7 +143,7 @@ sub run {
 
         _DIAG("URI: $uri_path");
 
-        warn "connection failed: $@" if !eval {
+        diag "connection failed: $@" if !eval {
             syswrite $cln, $MyServer::HEAD_START;
             syswrite $cln, "X-URI: $uri_path$MyServer::CRLF";
             syswrite $cln, $MyServer::CRLF;
