@@ -27,13 +27,13 @@ Net::Curl::Promiser::IOAsync - support for L<IO::Async>
 
 =head1 DESCRIPTION
 
-This module provides an L<IO::Async>-compatible interface for
+This module provides an L<IO::Async>-compatible subclass of
 L<Net::Curl::Promiser>.
 
-See F</examples> in the distribution for a fleshed-out demonstration.
+See F</examples> in the distribution, as well as the tests,
+for fleshed-out demonstrations.
 
-B<NOTE:> The actual interface is that provided by
-L<Net::Curl::Promiser::LoopBase>.
+B<NOTE:> This class’s constructor requires an L<IO::Async::Loop> instance.
 
 =cut
 

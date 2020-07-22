@@ -23,15 +23,15 @@ Net::Curl::Promiser::Mojo - support for L<Mojolicious>
 
 =head1 DESCRIPTION
 
-This module provides a L<Mojolicious>-compatible interface for
+This module provides a L<Mojolicious>-compatible subclass of
 L<Net::Curl::Promiser>.
 
-See F</examples> in the distribution for a fleshed-out demonstration.
+See F</examples> in the distribution, as well as the tests,
+for fleshed-out demonstrations.
 
 =head1 MOJOLICIOUS SPECIALTIES
 
-This module’s interface is that provided by
-L<Net::Curl::Promiser::LoopBase>, with the following tweaks to make it
+This module implements the following tweaks to make it
 more Mojo-friendly:
 
 =over

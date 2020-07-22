@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13_01';
 
 =encoding utf-8
 
@@ -64,6 +64,13 @@ Try out experimental Promise::XS support by running with
 C<NET_CURL_PROMISER_PROMISE_ENGINE=Promise::XS> in your environment.
 This will override C<PROMISE_CLASS()>.
 
+=head1 DESIGN NOTES
+
+Internally each instance of this class uses an instance of
+L<Net::Curl::Multi> and an instance of L<Net::Curl::Promiser::Backend>.
+(The latter, in turn, is subclassed to provide logic specific to
+each event interface.) These are kept separate to avoid circular references.
+
 =cut
 
 #----------------------------------------------------------------------
@@ -86,11 +93,8 @@ The following are of interest to any code that uses this module:
 
 =head2 I<CLASS>->new(@ARGS)
 
-Instantiates this class. This creates an underlying
-L<Net::Curl::Multi> object and calls the subclass’s C<_INIT()>
-method at the end, passing a reference to @ARGS.
-
-(Most end classes of this module do not require @ARGS.)
+Instantiates this class, including creation of an underlying
+L<Net::Curl::Multi> object.
 
 =cut
 
@@ -188,15 +192,17 @@ sub fail_handle {
 A passthrough to the underlying L<Net::Curl::Multi> object’s
 method of the same name. Returns I<OBJ> to facilitate chaining.
 
-C<CURLMOPT_SOCKETFUNCTION> or C<CURLMOPT_SOCKETDATA> are set internally;
-any attempt to set them via this interface will prompt an error.
+This class requires control of certain L<Net::Curl::Multi> options;
+if you attempt to set one of these here you’ll get an exception.
 
 =cut
+
+sub _SETOPT_FORBIDDEN { qw( SOCKETFUNCTION  SOCKETDATA ) };
 
 sub setopt {
     my $self = shift;
 
-    for my $opt ( qw( SOCKETFUNCTION  SOCKETDATA ) ) {
+    for my $opt ( $self->_SETOPT_FORBIDDEN() ) {
         my $fullopt = "CURLMOPT_$opt";
 
         if ($_[0] == Net::Curl::Multi->can($fullopt)->()) {
@@ -262,6 +268,10 @@ sub _socket_fn {
 See the distribution’s F</examples> directory.
 
 =head1 SEE ALSO
+
+L<Net::Curl::Simple> implements a similar idea to this module but
+doesn’t return promises. It has a more extensive interface that provides
+a more “perlish” experience than L<Net::Curl::Easy>.
 
 If you use L<AnyEvent>, then L<AnyEvent::XSPromises> with
 L<AnyEvent::YACurl> may be a nicer fit for you.

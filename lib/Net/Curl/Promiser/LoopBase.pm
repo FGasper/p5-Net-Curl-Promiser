@@ -3,32 +3,14 @@ package Net::Curl::Promiser::LoopBase;
 use strict;
 use warnings;
 
-=encoding utf-8
-
 =head1 NAME
 
-Net::Curl::Promiser::LoopBase - base class for event-loop-based implementations
+Net::Curl::Promiser::LoopBase - Base class for event-loop-based implementations
 
-=head1 INVALID METHODS
+=head1 DESCRIPTION
 
-The following methods from L<Net::Curl::Promiser> are unneeded in instances
-of this class and thus produce an exception if called:
-
-=over
-
-=item C<process()>
-
-=item C<time_out()>
-
-=item C<get_timeout()>
-
-=back
-
-=head1 TODO
-
-This is a rather hacky way accomplish this. Refactor it to be more-better.
-
-Also incorporate the copy-pasted timeout logic from subclasses.
+This subclass of L<Net::Curl::Promiser> provides abstract behaviors for
+event loops. It doesn’t change the interface.
 
 =cut
 
@@ -36,7 +18,7 @@ Also incorporate the copy-pasted timeout logic from subclasses.
 
 use parent qw( Net::Curl::Promiser );
 
-use Net::Curl ();
+use Net::Curl::Multi ();
 
 #----------------------------------------------------------------------
 
@@ -56,6 +38,15 @@ sub new {
     );
 
     return $self;
+}
+
+sub _SETOPT_FORBIDDEN {
+    my ($self_or_class) = @_;
+
+    return (
+        $self_or_class->SUPER::_SETOPT_FORBIDDEN(),
+        qw( TIMERFUNCTION  TIMERDATA ),
+    );
 }
 
 sub _GET_FD_ACTION {

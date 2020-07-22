@@ -99,40 +99,6 @@ any attempt to set them via this interface will prompt an error.
 A passthrough to the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s
 method of the same name.
 
-# EVENT LOOP METHODS
-
-The following are needed only when you’re managing an event loop directly:
-
-## $obj = _OBJ_->process( @ARGS )
-
-Tell the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object which socket events have
-happened.
-
-If, in fact, no events have happened, then this calls
-`socket_action(CURL_SOCKET_TIMEOUT)` on the
-[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object (similar to `time_out()`).
-
-Finally, this reaps whatever pending HTTP responses may be ready and
-resolves or rejects the corresponding Promise objects.
-
-This should only be called from event loop logic.
-
-Returns _OBJ_.
-
-## $is\_active = _OBJ_->time\_out();
-
-Tell the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object that a timeout happened,
-and reap whatever pending HTTP responses may be ready.
-
-Calls `socket_action(CURL_SOCKET_TIMEOUT)` on the
-underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object. The return is the same as
-that operation returns.
-
-Since `process()` can also do the work of this function, a call to this
-function is just an optimization.
-
-This should only be called from event loop logic.
-
 # EXAMPLES
 
 See the distribution’s `/examples` directory.

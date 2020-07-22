@@ -27,13 +27,11 @@ Net::Curl::Promiser::AnyEvent - support for L<AnyEvent>
 
 =head1 DESCRIPTION
 
-This module provides an L<AnyEvent>-compatible interface for
+This module provides an L<AnyEvent>-compatible subclass of
 L<Net::Curl::Promiser>.
 
-See F</examples> in the distribution for a fleshed-out demonstration.
-
-B<NOTE:> The actual interface is that provided by
-L<Net::Curl::Promiser::LoopBase>.
+See F</examples> in the distribution, as well as the tests,
+for fleshed-out demonstrations.
 
 =cut
 
