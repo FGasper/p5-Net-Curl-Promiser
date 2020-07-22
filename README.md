@@ -103,18 +103,6 @@ method of the same name.
 
 The following are needed only when you’re managing an event loop directly:
 
-## $num = _OBJ_->get\_timeout()
-
-Returns the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s `timeout()` value.
-
-(NB: This value is in _milliseconds_.)
-
-This may not suit your needs; if you wish/need, you can handle timeouts
-via the [CURLMOPT\_TIMERFUNCTION](https://metacpan.org/pod/Net::Curl::Multi#CURLMOPT_TIMERFUNCTION)
-callback instead.
-
-This should only be called (if it’s called at all) from event loop logic.
-
 ## $obj = _OBJ_->process( @ARGS )
 
 Tell the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object which socket events have

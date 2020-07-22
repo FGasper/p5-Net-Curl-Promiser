@@ -40,8 +40,6 @@ sub _fail_or_cancel {
 
     $self->{'to_fail'}{$easy} = [ $easy, $reason_sr ];
 
-    $easy->reset();
-
     return $self;
 }
 

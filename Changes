@@ -10,7 +10,6 @@ Revision history for Perl module Net::Curl::Promiser
   within the callbacks. (cf. curl_multi_remove_handle(3))
 - BUG FIX: Allow reuse of $easy within a promise callback.
 - BUG FIX: Memory leaks are fixed; detection is added to prevent regressions.
-- fail_handle() and cancel_handle() now reset() the Easy object.
 
 0.12 Sun 5 Jul 2020
 - Fix regression in IO::Async test.

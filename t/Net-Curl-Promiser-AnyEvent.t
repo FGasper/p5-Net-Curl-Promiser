@@ -7,10 +7,12 @@ use autodie;
 use Test::More;
 use Test::FailWarnings;
 
-use Net::Curl::Easy;
-
 use FindBin;
 use lib "$FindBin::Bin/lib";
+
+#use blib "$FindBin::Bin/../../perl-Net-Curl";
+
+use Net::Curl::Easy;
 
 use MyServer;
 use ClientTest;
@@ -51,6 +53,8 @@ SKIP: {
 
 sub _test_cancel {
     my ($promiser, $port) = @_;
+
+    diag "Testing cancellation …";
 
     require Net::Curl::Easy;
     my $easy = Net::Curl::Easy->new();

@@ -95,22 +95,29 @@ use Test::More;
 
 my $DIAG = 1;
 
+sub _time_out_readable {
+    my ($socket, $timeout) = @_;
+
+    my $rin = q<>;
+    vec( $rin, fileno($socket), 1 ) = 1;
+
+    my $got = select my $rout = $rin, undef, undef, $timeout;
+
+    if ($got < 0) {
+        warn "select(): $!";
+        $got = 0;
+    }
+
+    return $got;
+}
+
 # A blocking, non-forking server.
 # Written this way to achieve maximum simplicity.
 sub run {
     my ($socket, $end_fh) = @_;
 
-    my $rin = q<>;
-    vec( $rin, fileno($socket), 1 ) = 1;
-
     while (!-s $end_fh) {
-        my $got = select my $rout = $rin, undef, undef, 0.1;
-
-        if ($got < 0) {
-            warn "select(): $!";
-        }
-
-        next if $got <= 0;
+        next if !_time_out_readable($socket, 0.1);
 
         _DIAG("Server ($$) accepting connection …");
         accept( my $cln, $socket );
@@ -118,6 +125,11 @@ sub run {
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
+            if (!_time_out_readable($socket, 10)) {
+                warn "Read timed out after 10s! Closing connection …";
+                next;
+            }
+
             sysread( $cln, $buf, 512, length $buf );
         }
 
