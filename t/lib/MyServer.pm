@@ -93,6 +93,8 @@ use autodie;
 
 use Test::More;
 
+my $DIAG = 1;
+
 # A blocking, non-forking server.
 # Written this way to achieve maximum simplicity.
 sub run {
@@ -110,16 +112,16 @@ sub run {
 
         next if $got <= 0;
 
-        # print STDERR "Server ($$) accepting connection …\n";
+        _DIAG("Server ($$) accepting connection …");
         accept( my $cln, $socket );
-        # print STDERR "Server ($$) received connection\n";
+        _DIAG("Server ($$) received connection; reading …");
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf );
         }
 
-        # print STDERR "Server ($$) received headers\n";
+        _DIAG("Server ($$) received headers");
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
@@ -137,5 +139,9 @@ sub run {
         1 while sysread $cln, my $throwaway, 65536;
     }
 
-    print STDERR "Server ($$) received request to shut down\n";
+    diag "Server ($$) received request to shut down";
+}
+
+sub _DIAG {
+    diag shift() if $DIAG;
 }

@@ -1,10 +1,15 @@
 Revision history for Perl module Net::Curl::Promiser
 
 0.13
-- BUG FIX: Calling fail_handle() within a curl callback no longer
-  causes memory corruption.
+- BREAKING CHANGE: The subclass interface has changed, and the new
+  interface is no longer documented. Only the event interfaces that the
+  distribution knows about are supported. (Patches to support additional
+  interfaces will be considered.)
+- BUG FIX: We no longer process pending requests within a callback.
+  This caused libcurl corruption because we were removing handles within
+  those callbacks.
 - BUG FIX: Allow reuse of $easy within a promise callback.
-- Refactor to avoid memory leaks; add detection logic (on by default).
+- BUG FIX: Memory leaks are fixed; detection is added to prevent regressions.
 
 0.12 Sun 5 Jul 2020
 - Fix regression in IO::Async test.

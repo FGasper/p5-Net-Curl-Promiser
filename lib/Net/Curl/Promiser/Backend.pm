@@ -16,23 +16,28 @@ sub new {
 }
 
 sub cancel_handle {
-    my ($self, $easy, $multi) = @_;
+    my ($self, $easy) = @_;
 
-    $self->_is_pending($easy) or die "Cannot cancel non-pending request!";
-
-    # We need to cancel immediately so that our N::C::Multi object
-    # removes the handle before the next event loop iteration.
-    $self->_finish_handle($easy, $multi, 1);
-
-    return $self;
+    return $self->_fail_or_cancel($easy);
 }
 
 sub fail_handle {
     my ($self, $easy, $reason) = @_;
 
+    if (!defined $reason || !length $reason) {
+        require Carp;
+        Carp::carp("fail_handle(): no reason given");
+    }
+
+    return $self->_fail_or_cancel($easy, \$reason);
+}
+
+sub _fail_or_cancel {
+    my ($self, $easy, $reason_sr) = @_;
+
     $self->_is_pending($easy) or die "Cannot fail non-pending request!";
 
-    $self->{'to_fail'}{$easy} = [ $easy, \$reason ];
+    $self->{'to_fail'}{$easy} = [ $easy, $reason_sr ];
 
     return $self;
 }
@@ -156,6 +161,7 @@ sub _finish_handle {
 
         # This has to precede the callbacks so that $easy can be added back
         # into $self->{'multi'} within the callback.
+print "===== removing $easy\n";
         $multi->remove_handle($easy);
 
         if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {

@@ -74,6 +74,7 @@ sub _test_cancel {
 
 diag "before canceled";
     $promiser->cancel_handle($easy);
+    undef $easy;
 diag "canceled";
 
     push @watches, AnyEvent->timer(

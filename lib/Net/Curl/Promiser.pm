@@ -332,6 +332,8 @@ sub _socket_fn {
         print STDERR "FD $fd, STOP\n" if _DEBUG;
 
         $backend->STOP_POLL($fd, $multi);
+
+$backend->process_pending($multi);
     }
     else {
         warn( __PACKAGE__ . ": Unrecognized action $action on FD $fd\n" );
