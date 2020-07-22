@@ -153,6 +153,8 @@ sub run {
             # Proper TCP shutdown.
             shutdown $cln, 0;
             1 while sysread $cln, my $throwaway, 65536;
+
+            1;
         };
     }
 
