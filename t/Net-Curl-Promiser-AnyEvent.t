@@ -75,7 +75,6 @@ sub _test_cancel {
     my $cv = AnyEvent->condvar();
 
     $promiser->cancel_handle($easy);
-    undef $easy;
 
     push @watches, AnyEvent->timer(
         after => 1,

@@ -95,7 +95,7 @@ use autodie;
 
 use Test::More;
 
-my $DIAG = 1;
+my $DIAG = 0;
 
 sub _time_out_readable {
     my ($socket, $timeout) = @_;
@@ -122,30 +122,30 @@ sub run {
     while (!-s $end_fh) {
         next if !_time_out_readable($socket, 0.1);
 
-        _DIAG("Server ($$) accepting connection …");
+        _DIAG("Accepting connection …");
         accept( my $cln, $socket );
-        _DIAG("Server ($$) received connection; reading …");
+        _DIAG("Received connection; reading …");
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
             sysread( $cln, $buf, 512, length $buf ) or do {
-                diag "Connection closed prematurely.";
+                _DIAG("Connection closed prematurely.");
                 next ACCEPT;
             };
         }
 
-        _DIAG("Server ($$) received headers");
+        _DIAG("Received headers");
 
         $buf =~ m<GET \s+ (\S+)>x or die "Bad request: $buf";
         my $uri_path = $1;
+
+        _DIAG("URI: $uri_path");
 
         syswrite $cln, $MyServer::HEAD_START;
         syswrite $cln, "X-URI: $uri_path$MyServer::CRLF";
         syswrite $cln, $MyServer::CRLF;
 
         syswrite $cln, ( $uri_path eq '/biggie' ? $MyServer::BIGGIE : $uri_path );
-
-        # print STDERR "Server ($$) wrote response for $uri_path\n";
 
         # Proper TCP shutdown.
         shutdown $cln, 0;
@@ -156,5 +156,7 @@ sub run {
 }
 
 sub _DIAG {
-    diag shift() if $DIAG;
+    diag "Server (PID $$): " . shift() if $DIAG;
 }
+
+1;
