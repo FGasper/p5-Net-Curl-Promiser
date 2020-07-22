@@ -170,7 +170,7 @@ Returns I<OBJ>.
 sub cancel_handle {
     my ($self, $easy) = @_;
 
-    return $self->{'backend'}->cancel_handle($easy, $self->{'multi'});
+    return $self->{'backend'}->cancel_handle($easy);
 }
 
 =head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
@@ -232,28 +232,6 @@ sub handles {
 =head1 EVENT LOOP METHODS
 
 The following are needed only when you’re managing an event loop directly:
-
-=head2 $num = I<OBJ>->get_timeout()
-
-Returns the underlying L<Net::Curl::Multi> object’s C<timeout()> value.
-
-(NB: This value is in I<milliseconds>.)
-
-This may not suit your needs; if you wish/need, you can handle timeouts
-via the L<CURLMOPT_TIMERFUNCTION|Net::Curl::Multi/CURLMOPT_TIMERFUNCTION>
-callback instead.
-
-This should only be called (if it’s called at all) from event loop logic.
-
-=cut
-
-sub get_timeout {
-    my ($self) = @_;
-
-    return $self->{'multi'}->timeout();
-}
-
-#----------------------------------------------------------------------
 
 =head2 $obj = I<OBJ>->process( @ARGS )
 
@@ -332,8 +310,6 @@ sub _socket_fn {
         print STDERR "FD $fd, STOP\n" if _DEBUG;
 
         $backend->STOP_POLL($fd, $multi);
-
-$backend->process_pending($multi);
     }
     else {
         warn( __PACKAGE__ . ": Unrecognized action $action on FD $fd\n" );

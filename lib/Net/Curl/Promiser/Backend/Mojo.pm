@@ -3,7 +3,7 @@ package Net::Curl::Promiser::Backend::Mojo;
 use strict;
 use warnings;
 
-use parent 'Net::Curl::Promiser::Backend';
+use parent 'Net::Curl::Promiser::Backend::LoopBase';
 
 use Net::Curl::Multi ();
 
@@ -26,22 +26,21 @@ sub new {
 
 #----------------------------------------------------------------------
 
-sub _CB_TIMER {
-    my ($multi, $timeout_ms, $self) = @_;
+sub SET_TIMER {
+    my ($self, $multi, $timeout_ms) = @_;
+print "=== set timer $timeout_ms\n";
 
-    my ($ot) = delete @{$self}{'onetimer'};
+    $self->{onetimer} = Mojo::IOLoop->timer(
+        $timeout_ms / 1000,
+        sub {
+            $self->time_out($multi);
+        },
+    );
+}
+
+sub CLEAR_TIMER {
+    my ($ot) = delete $_[0]->{'onetimer'};
     Mojo::IOLoop->remove($ot) if $ot;
-
-    if ($timeout_ms != -1) {
-        $self->{onetimer} = Mojo::IOLoop->timer(
-            $timeout_ms / 1000,
-            sub {
-                $self->time_out($multi);
-            },
-        );
-    }
-
-    return 1;
 }
 
 sub _io {

@@ -12,6 +12,7 @@ use constant PROMISE_CLASS => 'Promise::ES6';
 sub new {
     return bless {
         ignore_leaks => $Net::Curl::Promiser::IGNORE_MEMORY_LEAKS,
+        to_fail => {},
     }, shift;
 }
 
@@ -38,6 +39,8 @@ sub _fail_or_cancel {
     $self->_is_pending($easy) or die "Cannot fail non-pending request!";
 
     $self->{'to_fail'}{$easy} = [ $easy, $reason_sr ];
+
+    $easy->reset();
 
     return $self;
 }
@@ -120,6 +123,12 @@ sub process_pending {
     }
 
     return;
+}
+
+sub get_timeout {
+    my ($self, $multi) = @_;
+
+    return %{ $self->{'to_fail'} } ? 0 : $multi->timeout();
 }
 
 sub time_out {

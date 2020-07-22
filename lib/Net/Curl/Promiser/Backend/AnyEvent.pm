@@ -3,37 +3,11 @@ package Net::Curl::Promiser::Backend::AnyEvent;
 use strict;
 use warnings;
 
-use parent 'Net::Curl::Promiser::Backend';
+use parent 'Net::Curl::Promiser::Backend::LoopBase';
 
 use Net::Curl::Multi ();
 
 use AnyEvent;
-
-#----------------------------------------------------------------------
-
-sub _CB_TIMER {
-    my ($multi, $timeout_ms, $self) = @_;
-
-    delete $self->{'timer'};
-
-    if ($timeout_ms != -1) {
-
-        # NB: It’s important that we not run time_out() immediately
-        # because if we add_handle() with an easy object that’s already
-        # completed, we’ll end up trying to remove a handle that hasn’t been
-        # added yet.
-        my $cb = sub {
-            $self->time_out($multi);
-        };
-
-        $self->{timer} = AnyEvent->timer(
-            after => $timeout_ms / 1000,
-            cb => $cb,
-        );
-    }
-
-    return 1;
-}
 
 #----------------------------------------------------------------------
 
@@ -50,6 +24,19 @@ sub _io {
 
     return;
 }
+
+sub SET_TIMER {
+    my ($self, $multi, $timeout_ms) = @_;
+
+    $self->{timer} = AnyEvent->timer(
+        after => $timeout_ms / 1000,
+        cb => sub {
+            $self->time_out($multi);
+        },
+    );
+}
+
+sub CLEAR_TIMER { $_[0]->{'timer'} = undef }
 
 sub SET_POLL_IN {
     my ($self, $fd, $multi) = @_;

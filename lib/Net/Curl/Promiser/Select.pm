@@ -69,15 +69,21 @@ sub get_fds {
 
 #----------------------------------------------------------------------
 
-=head2 @fds = I<OBJ>->get_timeout();
+=head2 $num = I<OBJ>->get_timeout()
 
-Translates the base class’s implementation of this method to seconds
-(since that’s what C<select()> expects).
+Like libcurl’s L<curl_multi_timeout(3)>, but sometimes returns different
+values depending on the needs of I<OBJ>.
+
+(NB: This value is in I<milliseconds>.)
+
+This should only be called (if it’s called at all) from event loop logic.
 
 =cut
 
 sub get_timeout {
-    my $timeout = $_[0]->SUPER::get_timeout();
+    my ($self) = @_;
+
+    my $timeout = $self->{'backend'}->get_timeout( $self->{'multi'} );
 
     return( ($timeout == -1) ? $timeout : $timeout / 1000 );
 }

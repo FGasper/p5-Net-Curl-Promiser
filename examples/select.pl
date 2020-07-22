@@ -72,9 +72,7 @@ while ($promiser->handles()) {
         }
     }
 
-print "before process\n";
     $promiser->process($$rout, $$wout);
-print "after process\n";
 }
 
 print "end\n";

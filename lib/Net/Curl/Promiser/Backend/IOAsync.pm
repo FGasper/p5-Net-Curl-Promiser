@@ -3,7 +3,7 @@ package Net::Curl::Promiser::Backend::IOAsync;
 use strict;
 use warnings;
 
-use parent 'Net::Curl::Promiser::Backend';
+use parent 'Net::Curl::Promiser::Backend::LoopBase';
 
 use IO::Async::Handle ();
 use Net::Curl::Multi ();
@@ -23,23 +23,21 @@ sub new {
 
 #----------------------------------------------------------------------
 
-sub _CB_TIMER {
-    my ($multi, $timeout_ms, $self) = @_;
+sub SET_TIMER {
+    my ($self, $multi, $timeout_ms) = @_;
 
-    my $loop = $self->{'_loop'};
+    $self->{'timer_id'} = $self->{'_loop'}->watch_time(
+        after => $timeout_ms / 1000,
+        code => sub { $self->time_out($multi) },
+    );
+}
+
+sub CLEAR_TIMER {
+    my ($self) = @_;
 
     if ( my $old_id = delete $self->{'timer_id'} ) {
-        $loop->unwatch_time($old_id);
+        $self->{'_loop'}->unwatch_time($old_id);
     }
-
-    if ($timeout_ms != -1) {
-        $self->{'timer_id'} = $loop->watch_time(
-            after => $timeout_ms / 1000,
-            code => sub { $self->time_out($multi) },
-        );
-    }
-
-    return 1;
 }
 
 sub _get_handle {
@@ -66,6 +64,8 @@ sub _get_handle {
         $handle;
     };
 }
+
+sub CLEAR { $_[0]->{'timer'} = undef }
 
 sub SET_POLL_IN {
     my ($self, $fd, $multi) = @_;
