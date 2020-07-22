@@ -10,8 +10,6 @@ use Test::FailWarnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-#use blib "$FindBin::Bin/../../perl-Net-Curl";
-
 use Net::Curl::Easy;
 
 use MyServer;
@@ -76,10 +74,8 @@ sub _test_cancel {
 
     my $cv = AnyEvent->condvar();
 
-diag "before canceled";
     $promiser->cancel_handle($easy);
     undef $easy;
-diag "canceled";
 
     push @watches, AnyEvent->timer(
         after => 1,

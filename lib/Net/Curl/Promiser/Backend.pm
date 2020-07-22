@@ -168,7 +168,6 @@ sub _finish_handle {
 
         # This has to precede the callbacks so that $easy can be added back
         # into $self->{'multi'} within the callback.
-print "===== removing $easy\n";
         $multi->remove_handle($easy);
 
         if ( my $cb_ar = delete $self->{'callbacks'}{$easy} ) {

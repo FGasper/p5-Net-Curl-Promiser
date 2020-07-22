@@ -56,13 +56,15 @@ sub new {
 sub finish {
     $_[0]->{'finished'} ||= do {
         my $pid = $_[0]->{'pid'};
-        diag "FINISHING SERVER: PID $pid";
+        diag "FINISHING SERVER: PID $pid (from PID $$)";
 
         syswrite $_[0]->{'end_fh'}, 'x';
 
         waitpid $pid, 0;
 
-        diag "REAPED SERVER: PID $pid";
+        diag "REAPED SERVER: PID $pid (from PID $$)";
+
+        1;
     };
 
     return;
@@ -116,6 +118,7 @@ sub _time_out_readable {
 sub run {
     my ($socket, $end_fh) = @_;
 
+  ACCEPT:
     while (!-s $end_fh) {
         next if !_time_out_readable($socket, 0.1);
 
@@ -125,12 +128,10 @@ sub run {
 
         my $buf = q<>;
         while (-1 == index($buf, "\x0d\x0a\x0d\x0a")) {
-            if (!_time_out_readable($socket, 10)) {
-                warn "Read timed out after 10s! Closing connection …";
-                next;
-            }
-
-            sysread( $cln, $buf, 512, length $buf );
+            sysread( $cln, $buf, 512, length $buf ) or do {
+                diag "Connection closed prematurely.";
+                next ACCEPT;
+            };
         }
 
         _DIAG("Server ($$) received headers");
