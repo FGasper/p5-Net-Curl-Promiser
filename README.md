@@ -48,17 +48,21 @@ Try out experimental Promise::XS support by running with
 `NET_CURL_PROMISER_PROMISE_ENGINE=Promise::XS` in your environment.
 This will override `PROMISE_CLASS()`.
 
+# DESIGN NOTES
+
+Internally each instance of this class uses an instance of
+[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) and an instance of [Net::Curl::Promiser::Backend](https://metacpan.org/pod/Net::Curl::Promiser::Backend).
+(The latter, in turn, is subclassed to provide logic specific to
+each event interface.) These are kept separate to avoid circular references.
+
 # GENERAL-USE METHODS
 
 The following are of interest to any code that uses this module:
 
 ## _CLASS_->new(@ARGS)
 
-Instantiates this class. This creates an underlying
-[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object and calls the subclass’s `_INIT()`
-method at the end, passing a reference to @ARGS.
-
-(Most end classes of this module do not require @ARGS.)
+Instantiates this class, including creation of an underlying
+[Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object.
 
 ## promise($EASY) = _OBJ_->add\_handle( $EASY )
 
@@ -91,8 +95,8 @@ Returns _OBJ_.
 A passthrough to the underlying [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) object’s
 method of the same name. Returns _OBJ_ to facilitate chaining.
 
-`CURLMOPT_SOCKETFUNCTION` or `CURLMOPT_SOCKETDATA` are set internally;
-any attempt to set them via this interface will prompt an error.
+This class requires control of certain [Net::Curl::Multi](https://metacpan.org/pod/Net::Curl::Multi) options;
+if you attempt to set one of these here you’ll get an exception.
 
 ## $obj = _OBJ_->handles( … )
 
@@ -104,6 +108,10 @@ method of the same name.
 See the distribution’s `/examples` directory.
 
 # SEE ALSO
+
+[Net::Curl::Simple](https://metacpan.org/pod/Net::Curl::Simple) implements a similar idea to this module but
+doesn’t return promises. It has a more extensive interface that provides
+a more “perlish” experience than [Net::Curl::Easy](https://metacpan.org/pod/Net::Curl::Easy).
 
 If you use [AnyEvent](https://metacpan.org/pod/AnyEvent), then [AnyEvent::XSPromises](https://metacpan.org/pod/AnyEvent::XSPromises) with
 [AnyEvent::YACurl](https://metacpan.org/pod/AnyEvent::YACurl) may be a nicer fit for you.
