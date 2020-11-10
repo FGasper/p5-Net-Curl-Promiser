@@ -13,6 +13,12 @@ Net::Curl::Promiser - Asynchronous L<libcurl|https://curl.haxx.se/libcurl/>, the
 
 =head1 DESCRIPTION
 
+=begin html
+
+<a href='https://coveralls.io/github/FGasper/p5-Net-Curl-Promiser?branch=master'><img src='https://coveralls.io/repos/github/FGasper/p5-Net-Curl-Promiser/badge.svg?branch=master' alt='Coverage Status' /></a>
+
+=end html
+
 L<Net::Curl::Multi> is powerful but tricky to use: polling, callbacks,
 timers, etc. This module does all of that for you and puts a Promise
 interface on top of it, so asynchronous I/O becomes almost as simple as
