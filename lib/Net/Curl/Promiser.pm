@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15_01';
 
 =encoding utf-8
 
@@ -82,6 +82,9 @@ each event interface.) These are kept separate to avoid circular references.
 #----------------------------------------------------------------------
 
 use parent 'Net::Curl::Promiser::LeakDetector';
+
+# So that Net::Curl::Easy::Code’s overloading gets set up:
+use Net::Curl::Easy ();
 
 use Net::Curl::Multi ();
 

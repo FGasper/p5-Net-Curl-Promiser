@@ -1,5 +1,9 @@
 Revision history for Perl module Net::Curl::Promiser
 
+0.15
+- BUG FIX: Load Net::Curl::Easy directly so that Net::Curl::Easy::Code’s
+overloading gets loaded.
+
 0.14 Tue 28 Jul 2020
 - BUG FIX: Fix leaks on curl 7.19 (CentOS 6).
 
