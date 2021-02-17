@@ -278,6 +278,8 @@ See the distribution’s F</examples> directory.
 
 =head1 SEE ALSO
 
+Try L<Net::Curl::Easier> for a more polished variant of Net::Curl::Easy.
+
 L<Net::Curl::Simple> implements a similar idea to this module but
 doesn’t return promises. It has a more extensive interface that provides
 a more “perlish” experience than L<Net::Curl::Easy>.
