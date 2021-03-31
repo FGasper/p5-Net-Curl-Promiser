@@ -3,7 +3,7 @@ package Net::Curl::Promiser;
 use strict;
 use warnings;
 
-our $VERSION = '0.15_01';
+our $VERSION = '0.15';
 
 =encoding utf-8
 
@@ -171,7 +171,9 @@ Returns I<OBJ>.
 sub cancel_handle {
     my ($self, $easy) = @_;
 
-    return $self->{'backend'}->cancel_handle($easy);
+    $self->{'backend'}->cancel_handle($easy, $self->{'multi'});
+
+    return $self;
 }
 
 =head2 $obj = I<OBJ>->fail_handle( $EASY, $REASON )
@@ -191,7 +193,9 @@ sub fail_handle {
         Carp::carp("fail_handle(): no reason given");
     }
 
-    return $self->{'backend'}->fail_handle($easy, $reason);
+    $self->{'backend'}->fail_handle($easy, $reason, $self->{'multi'});
+
+    return $self;
 }
 
 #----------------------------------------------------------------------
