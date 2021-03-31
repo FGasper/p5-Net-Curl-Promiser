@@ -14,8 +14,7 @@ use Net::Curl::Promiser::Select;
 
 use Socket;
 
-SKIP: {
-skip 'trying without this block', 1;
+{
     my $promiser = Net::Curl::Promiser::Select->new();
 
     my @list;
@@ -40,7 +39,7 @@ skip 'trying without this block', 1;
 
     ($r, $w, $e) = $promiser->get_vecs();
 
-    grep { tr<\0><>c } ($r, $w, $e) or do {
+    grep { tr<\0><>c } ($r, $w) or do {
         warn 'There needs to be *some* polling … ?';
     };
 
@@ -84,7 +83,8 @@ for my $fail_ar ( [0], ['haha'] ) {
 
     ($r, $w, $e) = $promiser->get_vecs();
 
-    grep { tr<\0><>c } ($r, $w, $e) or do {
+    grep { tr<\0><>c } ($r, $w) or do {
+        diag sprintf 'mask: %v.02x', $_ for ($r, $w);
         warn 'There needs to be *some* polling … ?';
     };
 
