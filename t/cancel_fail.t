@@ -63,8 +63,14 @@ for my $fail_ar ( [0], ['haha'] ) {
     my $easy = _make_req();
 
     $promiser->add_handle($easy)->then(
-        sub { push @list, [ res => @_ ] },
-        sub { push @list, [ rej => @_ ] },
+        sub {
+            diag explain [ res => @_ ];
+            push @list, [ res => @_ ];
+        },
+        sub {
+            diag explain [ rej => @_ ];
+            push @list, [ rej => @_ ];
+        },
     );
 
     my ($r, $w, $e) = $promiser->get_vecs();
@@ -103,6 +109,7 @@ sub _make_req {
     $_ = q<> for @{$easy}{ qw(_head _body) };
     $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
     $easy->setopt( CURLOPT_FILE() => \$easy->{'_body'} );
+    $easy->setopt( CURLOPT_VERBOSE() => 1 );
 
     return $easy;
 }
