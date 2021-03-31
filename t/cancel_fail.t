@@ -1,4 +1,4 @@
-package t::cancel;
+package t::cancel_fail;
 
 use strict;
 use warnings;
@@ -33,15 +33,19 @@ use Socket;
         },
     );
 
-    my ($r, $w, $e) = $promiser->get_vecs();
+    my ($r, $w, $e);
 
-    $promiser->process( $r, $w );
+    for (1 .. 10) {
+        ($r, $w, $e) = $promiser->get_vecs();
 
-    ($r, $w, $e) = $promiser->get_vecs();
+        $promiser->process( $r, $w );
 
-    grep { tr<\0><>c } ($r, $w) or do {
-        warn 'There needs to be *some* polling … ?';
-    };
+        ($r, $w, $e) = $promiser->get_vecs();
+
+        last if grep { tr<\0><>c } ($r, $w);
+
+        diag 'Curl didn’t tell us to poll yet; retrying …';
+    }
 
     $promiser->cancel_handle($easy);
 
@@ -68,25 +72,26 @@ for my $fail_ar ( [0], ['haha'] ) {
 
     $promiser->add_handle($easy)->then(
         sub {
-            diag explain [ res => @_ ];
             push @list, [ res => @_ ];
         },
         sub {
-            diag explain [ rej => @_ ];
             push @list, [ rej => @_ ];
         },
     );
 
-    my ($r, $w, $e) = $promiser->get_vecs();
+    my ($r, $w, $e);
 
-    $promiser->process( $r, $w );
+    for (1 .. 10) {
+        ($r, $w, $e) = $promiser->get_vecs();
 
-    ($r, $w, $e) = $promiser->get_vecs();
+        $promiser->process( $r, $w );
 
-    grep { tr<\0><>c } ($r, $w) or do {
-        diag sprintf 'mask: %v.02x', $_ for ($r, $w);
-        warn 'There needs to be *some* polling … ?';
-    };
+        ($r, $w, $e) = $promiser->get_vecs();
+
+        last if grep { tr<\0><>c } ($r, $w);
+
+        diag 'Curl didn’t tell us to poll yet; retrying …';
+    }
 
     $promiser->fail_handle($easy, @$fail_ar);
 
@@ -113,6 +118,8 @@ sub _create_server_socket {
     listen $srv, 10;
 
     my ($server_port) = Socket::unpack_sockaddr_in( getsockname($srv) );
+
+    diag "Created listening socket on port $server_port";
 
     return ($srv, $server_port);
 }
