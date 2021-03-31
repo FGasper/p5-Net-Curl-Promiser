@@ -2,6 +2,7 @@ package t::cancel;
 
 use strict;
 use warnings;
+use autodie;
 
 use Test::More;
 use Test::Deep;
@@ -10,6 +11,14 @@ use Test::FailWarnings;
 use Net::Curl::Easy qw(:constants);
 
 use Net::Curl::Promiser::Select;
+
+use Socket;
+
+socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
+bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
+listen $srv, 10;
+
+my ($SERVER_PORT) = Socket::unpack_sockaddr_in( getsockname($srv) );
 
 my $promiser = Net::Curl::Promiser::Select->new();
 
@@ -89,7 +98,7 @@ for my $fail_ar ( [0], ['haha'] ) {
 
 sub _make_req {
     my $easy = Net::Curl::Easy->new();
-    $easy->setopt( CURLOPT_URL() => "http://127.0.0.1" );
+    $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$SERVER_PORT" );
 
     $_ = q<> for @{$easy}{ qw(_head _body) };
     $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
