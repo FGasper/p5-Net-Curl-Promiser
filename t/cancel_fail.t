@@ -20,9 +20,9 @@ listen $srv, 10;
 
 my ($SERVER_PORT) = Socket::unpack_sockaddr_in( getsockname($srv) );
 
-my $promiser = Net::Curl::Promiser::Select->new();
-
 {
+    my $promiser = Net::Curl::Promiser::Select->new();
+
     my @list;
 
     my $easy = _make_req();
@@ -62,6 +62,8 @@ my $promiser = Net::Curl::Promiser::Select->new();
 }
 
 for my $fail_ar ( [0], ['haha'] ) {
+    my $promiser = Net::Curl::Promiser::Select->new();
+
     # diag "fail: " . (explain $fail_ar)[0];
 
     my @list;
