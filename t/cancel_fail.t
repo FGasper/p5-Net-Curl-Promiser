@@ -89,7 +89,7 @@ for my $fail_ar ( [0], ['haha'] ) {
 
 sub _make_req {
     my $easy = Net::Curl::Easy->new();
-    $easy->setopt( CURLOPT_URL() => "http://example.com" );
+    $easy->setopt( CURLOPT_URL() => "http://localhost" );
 
     $_ = q<> for @{$easy}{ qw(_head _body) };
     $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
