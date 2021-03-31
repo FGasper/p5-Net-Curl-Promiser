@@ -23,11 +23,17 @@ my $promiser = Net::Curl::Promiser::Select->new();
         sub { push @list, [ rej => @_ ] },
     );
 
-    $promiser->cancel_handle($easy);
-
     my ($r, $w, $e) = $promiser->get_vecs();
 
     $promiser->process( $r, $w );
+
+    ($r, $w, $e) = $promiser->get_vecs();
+
+    grep { tr<\0><>c } ($r, $w, $e) or do {
+        warn 'There needs to be *some* polling … ?';
+    };
+
+    $promiser->cancel_handle($easy);
 
     ($r, $w, $e) = $promiser->get_vecs();
 
@@ -52,11 +58,17 @@ for my $fail_ar ( [0], ['haha'] ) {
         sub { push @list, [ rej => @_ ] },
     );
 
-    $promiser->fail_handle($easy, @$fail_ar);
-
     my ($r, $w, $e) = $promiser->get_vecs();
 
     $promiser->process( $r, $w );
+
+    ($r, $w, $e) = $promiser->get_vecs();
+
+    grep { tr<\0><>c } ($r, $w, $e) or do {
+        warn 'There needs to be *some* polling … ?';
+    };
+
+    $promiser->fail_handle($easy, @$fail_ar);
 
     ($r, $w, $e) = $promiser->get_vecs();
 

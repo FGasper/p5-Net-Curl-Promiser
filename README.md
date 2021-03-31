@@ -113,6 +113,8 @@ See the distribution’s `/examples` directory.
 
 # SEE ALSO
 
+Try [Net::Curl::Easier](https://metacpan.org/pod/Net::Curl::Easier) for a more polished variant of Net::Curl::Easy.
+
 [Net::Curl::Simple](https://metacpan.org/pod/Net::Curl::Simple) implements a similar idea to this module but
 doesn’t return promises. It has a more extensive interface that provides
 a more “perlish” experience than [Net::Curl::Easy](https://metacpan.org/pod/Net::Curl::Easy).
