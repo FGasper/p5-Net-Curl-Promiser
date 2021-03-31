@@ -14,18 +14,23 @@ use Net::Curl::Promiser::Select;
 
 use Socket;
 
-socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
-bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
-listen $srv, 10;
+sub _create_server_socket {
+    socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
+    bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
+    listen $srv, 10;
 
-my ($SERVER_PORT) = Socket::unpack_sockaddr_in( getsockname($srv) );
+    my ($server_port) = Socket::unpack_sockaddr_in( getsockname($srv) );
+
+    return ($srv, $server_port);
+}
 
 {
     my $promiser = Net::Curl::Promiser::Select->new();
 
     my @list;
 
-    my $easy = _make_req();
+    my ($srv, $server_port) = _create_server_socket();
+    my $easy = _make_req($server_port);
 
     $promiser->add_handle($easy)->then(
         sub {
@@ -68,7 +73,8 @@ for my $fail_ar ( [0], ['haha'] ) {
 
     my @list;
 
-    my $easy = _make_req();
+    my ($srv, $server_port) = _create_server_socket();
+    my $easy = _make_req($server_port);
 
     $promiser->add_handle($easy)->then(
         sub {
@@ -111,8 +117,10 @@ for my $fail_ar ( [0], ['haha'] ) {
 #----------------------------------------------------------------------
 
 sub _make_req {
+    my $port = shift;
+
     my $easy = Net::Curl::Easy->new();
-    $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$SERVER_PORT" );
+    $easy->setopt( CURLOPT_URL() => "http://127.0.0.1:$port" );
 
     $_ = q<> for @{$easy}{ qw(_head _body) };
     $easy->setopt( CURLOPT_HEADERDATA() => \$easy->{'_head'} );
