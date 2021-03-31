@@ -8,6 +8,8 @@ use Test::More;
 use Test::Deep;
 use Test::FailWarnings;
 
+use Time::HiRes;
+
 use Net::Curl::Easy qw(:constants);
 
 use Net::Curl::Promiser::Select;
@@ -100,7 +102,11 @@ sub _wait_until_polling {
 
         return if grep { tr<\0><>c } ($r, $w);
 
-        diag 'Curl didn’t tell us to poll yet; retrying …';
+        my $timeout = $promiser->get_timeout();
+
+        diag "Curl didn’t tell us to poll yet; retrying after $timeout seconds …";
+
+        Time::HiRes::sleep($timeout / 1000);
     }
 
     warn "Curl didn’t tell us to poll after $times times. Continuing …\n";
