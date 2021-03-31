@@ -14,17 +14,8 @@ use Net::Curl::Promiser::Select;
 
 use Socket;
 
-sub _create_server_socket {
-    socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
-    bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
-    listen $srv, 10;
-
-    my ($server_port) = Socket::unpack_sockaddr_in( getsockname($srv) );
-
-    return ($srv, $server_port);
-}
-
-{
+SKIP: {
+skip 'trying without this block', 1;
     my $promiser = Net::Curl::Promiser::Select->new();
 
     my @list;
@@ -115,6 +106,16 @@ for my $fail_ar ( [0], ['haha'] ) {
 }
 
 #----------------------------------------------------------------------
+
+sub _create_server_socket {
+    socket my $srv, Socket::AF_INET, Socket::SOCK_STREAM, 0;
+    bind $srv, Socket::pack_sockaddr_in(0, "\x7f\0\0\1");
+    listen $srv, 10;
+
+    my ($server_port) = Socket::unpack_sockaddr_in( getsockname($srv) );
+
+    return ($srv, $server_port);
+}
 
 sub _make_req {
     my $port = shift;
