@@ -100,7 +100,10 @@ sub _wait_until_polling {
 
         ($r, $w, $e) = $promiser->get_vecs();
 
-        return if grep { tr<\0><>c } ($r, $w);
+        if (grep { tr<\0><>c } ($r, $w)) {
+            diag 'Curl told us to poll; continuing …';
+            return;
+        }
 
         my $timeout = $promiser->get_timeout();
 
