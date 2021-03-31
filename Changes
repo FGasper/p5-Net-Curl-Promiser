@@ -6,6 +6,7 @@ event-loop interactions. Previously memory leak warnings happened if the
 cancel/fail happened on the last time through the event loop.
 - BUG FIX: Load Net::Curl::Easy directly so that Net::Curl::Easy::Code’s
 overloading gets loaded.
+- Documentation fixes/improvements for Select.pm.
 
 0.14 Tue 28 Jul 2020
 - BUG FIX: Fix leaks on curl 7.19 (CentOS 6).
