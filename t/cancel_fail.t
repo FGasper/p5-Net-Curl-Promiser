@@ -91,7 +91,7 @@ for my $fail_ar ( [0], ['haha'] ) {
 sub _wait_until_polling {
     my $promiser = shift;
 
-    my $times = 10;
+    my $times = 100;
 
     for (1 .. $times) {
         my ($r, $w, $e) = $promiser->get_vecs();
