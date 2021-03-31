@@ -28,8 +28,14 @@ my $promiser = Net::Curl::Promiser::Select->new();
     my $easy = _make_req();
 
     $promiser->add_handle($easy)->then(
-        sub { push @list, [ res => @_ ] },
-        sub { push @list, [ rej => @_ ] },
+        sub {
+            diag explain [ res => @_ ];
+            push @list, [ res => @_ ];
+        },
+        sub {
+            diag explain [ rej => @_ ];
+            push @list, [ rej => @_ ];
+        },
     );
 
     my ($r, $w, $e) = $promiser->get_vecs();
