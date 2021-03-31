@@ -33,23 +33,11 @@ use Socket;
         },
     );
 
-    my ($r, $w, $e);
-
-    for (1 .. 10) {
-        ($r, $w, $e) = $promiser->get_vecs();
-
-        $promiser->process( $r, $w );
-
-        ($r, $w, $e) = $promiser->get_vecs();
-
-        last if grep { tr<\0><>c } ($r, $w);
-
-        diag 'Curl didn’t tell us to poll yet; retrying …';
-    }
+    _wait_until_polling($promiser);
 
     $promiser->cancel_handle($easy);
 
-    ($r, $w, $e) = $promiser->get_vecs();
+    my ($r, $w, $e) = $promiser->get_vecs();
 
     cmp_deeply(
         [$r, $w, $e],
@@ -79,23 +67,11 @@ for my $fail_ar ( [0], ['haha'] ) {
         },
     );
 
-    my ($r, $w, $e);
-
-    for (1 .. 10) {
-        ($r, $w, $e) = $promiser->get_vecs();
-
-        $promiser->process( $r, $w );
-
-        ($r, $w, $e) = $promiser->get_vecs();
-
-        last if grep { tr<\0><>c } ($r, $w);
-
-        diag 'Curl didn’t tell us to poll yet; retrying …';
-    }
+    _wait_until_polling($promiser);
 
     $promiser->fail_handle($easy, @$fail_ar);
 
-    ($r, $w, $e) = $promiser->get_vecs();
+    my ($r, $w, $e) = $promiser->get_vecs();
 
     cmp_deeply(
         [$r, $w, $e],
@@ -108,6 +84,26 @@ for my $fail_ar ( [0], ['haha'] ) {
         [ [ rej => $fail_ar->[0] ] ],
         'promise rejected',
     ) or diag explain \@list;
+}
+
+sub _wait_until_polling {
+    my $promiser = shift;
+
+    my $times = 10;
+
+    for (1 .. $times) {
+        my ($r, $w, $e) = $promiser->get_vecs();
+
+        $promiser->process( $r, $w );
+
+        ($r, $w, $e) = $promiser->get_vecs();
+
+        return if grep { tr<\0><>c } ($r, $w);
+
+        diag 'Curl didn’t tell us to poll yet; retrying …';
+    }
+
+    warn "Curl didn’t tell us to poll after $times times. Continuing …\n";
 }
 
 #----------------------------------------------------------------------
