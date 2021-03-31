@@ -106,7 +106,7 @@ sub _wait_until_polling {
 
         diag "Curl didn’t tell us to poll yet; retrying after $timeout seconds …";
 
-        Time::HiRes::sleep($timeout / 1000);
+        Time::HiRes::sleep($timeout / 1000) if $timeout > 0;
     }
 
     warn "Curl didn’t tell us to poll after $times times. Continuing …\n";
