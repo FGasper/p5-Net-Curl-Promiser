@@ -8,17 +8,17 @@ on:
       - '*'
   pull_request:
 
+env:
+    PERL_USE_UNSAFE_INC: 0
+    AUTHOR_TESTING: 1
+    AUTOMATED_TESTING: 1
+    RELEASE_TESTING: 0
+    PERL_CARTON_PATH: $GITHUB_WORKSPACE/local
+
 jobs:
   perl:
 
     runs-on: ubuntu-latest
-
-    env:
-       PERL_USE_UNSAFE_INC: 0
-       AUTHOR_TESTING: 1
-       AUTOMATED_TESTING: 1
-       RELEASE_TESTING: 0
-       PERL_CARTON_PATH: $GITHUB_WORKSPACE/local
 
     strategy:
       fail-fast: false
@@ -41,7 +41,7 @@ jobs:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: perl -V
         run: perl -V
       - name: Install AnyEvent (optional)
@@ -58,3 +58,32 @@ jobs:
         run: make
       - name: Run Tests
         run: make test
+
+  old-curl:
+    runs-on: ubuntu-latest
+
+    container:
+      image: perldocker/perl-tester
+
+    strategy:
+      fail-fast: false
+      matrix:
+        curl-version:
+          - 7.19.7  # CloudLinux 6
+          - 7.29.0  # CentOS 7
+          - 7.61.1  # AlmaLinux 8
+          - 7.68.0  # Ubuntu 20
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: perl -V
+      - run: apt install wget
+      - run: wget https://curl.se/download/archeology/curl-${{ matrix.curl-version }}.tar.gz
+      - run: cd curl-${{ matrix.curl-version }} && ./configure && make install
+      - run: rm -rf curl-${{ matrix.curl-version }}
+      - run: "cpanm --notest AnyEvent ||:"
+      - run: "cpanm --notest IO::Async ||:"
+      - run: "cpanm --notest Mojolicious ||:"
+      - run: cpanm --notest --installdeps .
+      - run: Perl Makefile.PL
+      - run: make test
