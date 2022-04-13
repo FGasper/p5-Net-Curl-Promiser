@@ -78,12 +78,12 @@ jobs:
       - uses: actions/checkout@v3
       - run: perl -V
       - run: apt install wget
-      - run: wget https://curl.se/download/archeology/curl-${{ matrix.curl-version }}.tar.gz
+      - run: wget https://curl.se/download/archeology/curl-${{ matrix.curl-version }}.tar.gz -O - | tar -xzf -
       - run: cd curl-${{ matrix.curl-version }} && ./configure && make install
       - run: rm -rf curl-${{ matrix.curl-version }}
       - run: "cpanm --notest AnyEvent ||:"
       - run: "cpanm --notest IO::Async ||:"
       - run: "cpanm --notest Mojolicious ||:"
       - run: cpanm --notest --installdeps .
-      - run: Perl Makefile.PL
+      - run: perl Makefile.PL
       - run: make test
