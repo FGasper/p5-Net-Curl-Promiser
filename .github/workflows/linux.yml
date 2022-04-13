@@ -82,11 +82,12 @@ jobs:
       - run: apt install wget
       - run: wget https://curl.se/download/${{matrix.curl.urldir}}curl-${{ matrix.curl.version }}.tar.gz -O - | tar -xzf -
       - run: cd curl-${{ matrix.curl.version }} && ./configure && make install
-      - run: pkg-config curl --version
+      - run: pkg-config libcurl --modversion
       - run: rm -rf curl-${{ matrix.curl.version }}
       - run: "cpanm --notest AnyEvent ||:"
       - run: "cpanm --notest IO::Async ||:"
       - run: "cpanm --notest Mojolicious ||:"
       - run: cpanm --notest --installdeps .
       - run: perl Makefile.PL
-      - run: make test
+      - run: make
+      - run: prove -wlvmb t
