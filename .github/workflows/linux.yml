@@ -68,19 +68,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        curl-version:
-          - 7.19.7  # CloudLinux 6
-          - 7.29.0  # CentOS 7
-          - 7.61.1  # AlmaLinux 8
-          - 7.68.0  # Ubuntu 20
+        curl:
+          - version: 7.19.7  # CloudLinux 6
+            urldir: archeology/
+          - version: 7.29.0  # CentOS 7
+            urldir: archeology/
+          - version: 7.61.1  # AlmaLinux 8
+          - version: 7.68.0  # Ubuntu 20
 
     steps:
       - uses: actions/checkout@v3
       - run: perl -V
       - run: apt install wget
-      - run: wget https://curl.se/download/archeology/curl-${{ matrix.curl-version }}.tar.gz -O - | tar -xzf -
-      - run: cd curl-${{ matrix.curl-version }} && ./configure && make install
-      - run: rm -rf curl-${{ matrix.curl-version }}
+      - run: wget https://curl.se/download/${{matrix.curl.urldir}}curl-${{ matrix.curl.version }}.tar.gz -O - | tar -xzf -
+      - run: cd curl-${{ matrix.curl.version }} && ./configure && make install
+      - run: pkg-config curl --version
+      - run: rm -rf curl-${{ matrix.curl.version }}
       - run: "cpanm --notest AnyEvent ||:"
       - run: "cpanm --notest IO::Async ||:"
       - run: "cpanm --notest Mojolicious ||:"
