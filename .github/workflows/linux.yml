@@ -71,10 +71,12 @@ jobs:
         curl:
           - version: 7.19.7  # CloudLinux 6
             urldir: archeology/
-          - version: 7.29.0  # CentOS 7
-            urldir: archeology/
+          # - version: 7.29.0  # CentOS 7, but https://github.com/curl/curl/commit/da3fc1ee91de656a30f3a12de394bcba55119872
+          #   urldir: archeology/
           - version: 7.61.1  # AlmaLinux 8
           - version: 7.68.0  # Ubuntu 20
+
+    name: curl ${{ matrix.curl.version }}
 
     steps:
       - uses: actions/checkout@v3
