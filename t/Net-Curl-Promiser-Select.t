@@ -37,20 +37,24 @@ plan tests => 2 + $ClientTest::TEST_COUNT;
 
         ($rout, $wout, $eout) = $promiser->get_vecs();
 
-        if (!$checked_get_fds) {
-            if (grep { tr<\0><>c } $rout, $wout) {
-                $checked_get_fds++;
+        s<\A\0+><> for ($rout, $wout);
 
-                my @fds = $promiser->get_fds();
+        if ($^O eq 'solaris') {
+            diag sprintf "rout: %v.08b; wout: %v.08b; timeout: %s\n", $rout, $wout, $timeout;
+        }
 
-                ok( 0 + @fds, 'get_fds() returns something when get_vecs() does' );
+        if (!$checked_get_fds && grep { tr<\0><>c } $rout, $wout) {
+            $checked_get_fds++;
 
-                is(
-                    0 + @fds,
-                    0 + $promiser->get_fds(),
-                    'get_fds() in scalar',
-                );
-            }
+            my @fds = $promiser->get_fds();
+
+            ok( 0 + @fds, 'get_fds() returns something when get_vecs() does' );
+
+            is(
+                0 + @fds,
+                0 + $promiser->get_fds(),
+                'get_fds() in scalar',
+            );
         }
 
         if ($timeout && $timeout != -1) {
@@ -67,6 +71,11 @@ plan tests => 2 + $ClientTest::TEST_COUNT;
         }
 
         $promiser->process($rout, $wout);
+    }
+
+    # Seen in Solaris with Perl 5.38+ and libcurl 8.0.1.
+    if (!$checked_get_fds) {
+        skip 'curl didn’t give us a chance to test get_fds()', 2;
     }
 
     $server->finish();
