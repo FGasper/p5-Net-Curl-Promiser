@@ -37,8 +37,6 @@ plan tests => 2 + $ClientTest::TEST_COUNT;
 
         ($rout, $wout, $eout) = $promiser->get_vecs();
 
-        s<\A\0+><> for ($rout, $wout);
-
         if ($^O eq 'solaris') {
             diag sprintf "rout: %v.08b; wout: %v.08b; timeout: %s\n", $rout, $wout, $timeout;
         }
