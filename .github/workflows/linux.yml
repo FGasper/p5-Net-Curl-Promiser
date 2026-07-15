@@ -24,6 +24,11 @@ jobs:
       fail-fast: false
       matrix:
         perl-version:
+          - '5.42'
+          - '5.40'
+          - '5.38'
+          - '5.36'
+          - '5.34'
           - '5.32'
           - '5.30'
           - '5.28'
@@ -44,6 +49,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: perl -V
         run: perl -V
+      # needed in 5.42:
+      - run: apt install libcurl4-openssl-dev
       - name: Install AnyEvent (optional)
         run: "cpanm --notest AnyEvent ||:"
       - name: Install IO::Async (optional)
@@ -51,7 +58,7 @@ jobs:
       - name: Install Mojolicious (optional)
         run: "cpanm --notest Mojolicious ||:"
       - name: Install Dependencies
-        run: cpanm --notest --installdeps .
+        run: cpanm --notest --installdeps --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -63,7 +70,9 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: perldocker/perl-tester
+      # 5.34 is a known good version. Later images cause breakage to
+      # the libcurl build.
+      image: perldocker/perl-tester:5.34
 
     strategy:
       fail-fast: false
